@@ -86,6 +86,7 @@ namespace ppbox
             , debug_log_stream_(NULL)
             , timer_(NULL)
             , msg_queue_("Debuger", shared_memory())
+            , out_streamed(false)
         {
             debug_mode_ = (boost::uint32_t *)shared_memory().alloc_with_id(DEBUG_OBJECT_ID, sizeof(boost::uint32_t));
             if (debug_mode_) {
@@ -95,6 +96,14 @@ namespace ppbox
             }
 
             check_debug_mode();
+        }
+
+        Debuger::~Debuger()
+        {
+            if (debug_log_stream_) {
+                delete debug_log_stream_;
+                debug_log_stream_ = NULL;
+            }
         }
 
         error_code Debuger::startup()
@@ -114,13 +123,11 @@ namespace ppbox
             delete timer_;
             timer_ = NULL;
 
-            if (debug_log_stream_) {
+            if (out_streamed) {
                 LOG_S(Logger::kLevelEvent, "[shutdown] leave debug mode");
                 global_logger().del_stream(debug_log_stream_);
-                delete debug_log_stream_;
-                debug_log_stream_ = NULL;
             }
-        }
+       }
 
         void Debuger::get_debug_msg(
             MessageList & msgs, 
@@ -140,8 +147,8 @@ namespace ppbox
             bool bdebug)
         {
             if (bdebug) {
-                if (*debug_mode_ == 1)
-                    return;
+                //if (*debug_mode_ == 1)
+                //    return;
                 *debug_mode_ = 1;
             } else {
                 *debug_mode_ = 0;
@@ -173,15 +180,17 @@ namespace ppbox
         void Debuger::check_debug_mode()
         {
             if (debug_mode_) {
-                if (*debug_mode_ == 1 && !debug_log_stream_) {
-                    debug_log_stream_ = new MsgQueueStream(msg_queue());
+                if (*debug_mode_ == 1) {
+                    if (!debug_log_stream_) {
+                        debug_log_stream_ = new MsgQueueStream(msg_queue());
+                    }
+                    out_streamed = true;
                     global_logger().add_stream(debug_log_stream_);
                     LOG_S(Logger::kLevelEvent, "[check_debug_mode] enter debug mode");
                 } else  if (*debug_mode_ == 0 && debug_log_stream_) {
                     LOG_S(Logger::kLevelEvent, "[check_debug_mode] leave debug mode");
+                    out_streamed = false;
                     global_logger().del_stream(debug_log_stream_);
-                    delete debug_log_stream_;
-                    debug_log_stream_ = NULL;
                 }
             }
         }
