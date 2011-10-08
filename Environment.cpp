@@ -20,8 +20,9 @@ namespace ppbox
             std::vector<Interface> infs;
             if (!enum_interface(infs)) {
                 for (size_t i = 0; i < infs.size(); ++i) {
-                    if (std::string(infs[i].name) == "lo"
-                        || infs[i].hard_addr_string(':', false) == "00:00:00:00:00:00")
+                    if (std::string(infs[i].name) == "lo")
+                        continue;
+                    if (::memcmp(infs[i].hwaddr, "\0\0\0\0\0\0", 6) == 0)
                         continue;
                     if (mac.length() != 0)
                         mac += "|";

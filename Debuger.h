@@ -20,8 +20,6 @@ namespace ppbox
             Debuger(
                 util::daemon::Daemon & daemon);
 
-            ~Debuger();
-
         public:
             virtual boost::system::error_code startup();
 
@@ -49,7 +47,6 @@ namespace ppbox
             MsgQueueStream * debug_log_stream_;
             framework::timer::Timer * timer_;
             framework::process::MessageQueue msg_queue_;
-            bool out_streamed;
         };
 
     } // namespace common
