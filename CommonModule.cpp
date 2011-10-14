@@ -20,16 +20,6 @@ namespace ppbox
     namespace common
     {
 
-        CommonModule::CommonModule(
-            util::daemon::Daemon & daemon)
-            : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
-            , shm_(SHARED_MEMORY_INST_ID)
-            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
-            , msg_queue_("CommonModule", shm_)
-        {
-            assert(0);
-        }
-
         static framework::memory::SharedMemory & open_shm(
             framework::memory::SharedMemory & shm)
         {
@@ -41,6 +31,16 @@ namespace ppbox
                     LOG_S(Logger::kLevelAlarm, "SharedMemory open: " << ec.message());
             }
             return shm;
+        }
+
+        CommonModule::CommonModule(
+            util::daemon::Daemon & daemon)
+            : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
+            , shm_(SHARED_MEMORY_INST_ID)
+            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
+            , msg_queue_("CommonModule", open_shm(shm_))
+        {
+//            assert(0);
         }
 
         CommonModule::CommonModule(
