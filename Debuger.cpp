@@ -6,10 +6,8 @@
 #include <framework/timer/Timer.h>
 #include <framework/timer/TimeCounter.h>
 #include <framework/string/Format.h>
-#include <framework/logger/LogMsgStream.h>
 #include <framework/logger/LoggerStreamRecord.h>
 using namespace framework::string;
-using namespace framework::logger;
 
 #include <boost/bind.hpp>
 using namespace boost::system;
@@ -26,6 +24,14 @@ namespace ppbox
 {
     namespace common
     {
+
+        OuterLogStream & getOuterLogStream()
+        {
+            static OuterLogStream ols( NULL, 0 );
+            return ols;
+        }
+
+        OuterLogStream & outerLogStream = getOuterLogStream();
 
         // 写入消息队列
         class MsgQueueStream 

@@ -20,6 +20,13 @@ namespace ppbox
     namespace common
     {
 
+#if defined( PPBOX_SINGLE_PROCESS )
+        static framework::memory::PrivateMemory & open_shm(
+            framework::memory::PrivateMemory & shm )
+        {
+            return shm;
+        }
+#else
         static framework::memory::SharedMemory & open_shm(
             framework::memory::SharedMemory & shm)
         {
@@ -32,12 +39,15 @@ namespace ppbox
             }
             return shm;
         }
+#endif
 
         CommonModule::CommonModule(
             util::daemon::Daemon & daemon)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
-            , shm_(SHARED_MEMORY_INST_ID)
             , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
+#if !defined( PPBOX_SINGLE_PROCESS )
+            , shm_(SHARED_MEMORY_INST_ID)
+#endif
             , msg_queue_("CommonModule", open_shm(shm_))
         {
 //            assert(0);
@@ -47,9 +57,12 @@ namespace ppbox
             util::daemon::Daemon & daemon, 
             std::string const & name)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
-            , shm_(SHARED_MEMORY_INST_ID)
             , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
+#if !defined( PPBOX_SINGLE_PROCESS )
+            , shm_(SHARED_MEMORY_INST_ID)
+#endif
             , msg_queue_(name, open_shm(shm_))
+
         {
         }
 

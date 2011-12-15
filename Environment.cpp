@@ -28,9 +28,10 @@ namespace ppbox
                     if (mac.length() != 0)
                         mac += "|";
                     mac += infs[i].hard_addr_string(':', false);
+                    if (mac.size() >= 71) // 最多4个
+                        break;
                 }
             }
-
             if (mac.empty())
                 mac = "aa:bb:cc:dd:ee:gg";
             mid = mac;

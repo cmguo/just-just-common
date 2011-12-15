@@ -58,10 +58,15 @@ namespace ppbox
                 return env_;
             }
 
+#if defined( PPBOX_SINGLE_PROCESS )
+            framework::memory::PrivateMemory & shared_memory()
+#else
             framework::memory::SharedMemory & shared_memory()
+#endif
             {
                 return shm_;
             }
+
 
             framework::timer::TimerQueue & timer_queue()
             {
@@ -75,7 +80,11 @@ namespace ppbox
 
         private:
             Environment env_;
+#if defined( PPBOX_SINGLE_PROCESS )
+            framework::memory::PrivateMemory shm_;
+#else
             framework::memory::SharedMemory shm_;
+#endif
             framework::timer::AsioTimerManager tmgr_;
             framework::process::MessageQueue msg_queue_;
         };
