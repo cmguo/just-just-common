@@ -3,7 +3,6 @@
 #include "ppbox/common/Common.h"
 #include "ppbox/common/HttpFetchManager.h"
 
-#include <ppbox/demux/DemuxerError.h>
 
 #include <util/archive/XmlIArchive.h>
 #include <util/buffers/BufferCopy.h>
@@ -62,9 +61,10 @@ namespace ppbox
             }
             else
             {
+				assert(0);
                 //Ê§°ÜµÄ
-                ppbox::common::HttpStatistics http_stat;
-                return http_stat;
+				static ppbox::common::HttpStatistics g_http_stat;
+                return g_http_stat;
             }
         }
 
