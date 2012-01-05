@@ -19,7 +19,7 @@ using namespace util::protocol;
 using namespace boost::system;
 
 #ifdef BOOST_WINDOWS_API
-#  ifdef UNDER_CE
+#  if (defined UNDER_CE) || (defined __MINGW32__)
 #    define localtime_r(x, y) *y = *localtime(x)
 #  else 
 #    define localtime_r(x, y) localtime_s(y, x)
