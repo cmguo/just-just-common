@@ -56,8 +56,10 @@ namespace ppbox
         {
             error_code ec;
             if (framework::network::acceptor_open<boost::asio::ip::tcp>(acceptor_, addr_.endpoint(), ec))
+            {
+                ec.clear();
                 return ec;
-
+            }
             work_thread_ = new boost::thread(
                 boost::bind(&DebugProxy::start, this));
 
