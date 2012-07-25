@@ -10,8 +10,12 @@
 
 #include <util/daemon/Module.h>
 #include <util/daemon/Daemon.h>
-
+#if defined( PPBOX_SINGLE_PROCESS )
 #include <framework/memory/SharedMemory.h>
+#include <framework/memory/PrivateMemory.h>
+#else
+#include <framework/memory/SharedMemory.h>
+#endif
 #include <framework/timer/AsioTimerManager.h>
 #include <framework/process/MessageQueue.h>
 
