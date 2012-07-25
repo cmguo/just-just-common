@@ -13,6 +13,7 @@ using namespace framework::logger;
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("HttpFetchManager", 0);
 
+using namespace ppbox::vod;
 namespace ppbox
 {
     namespace common
@@ -61,9 +62,9 @@ namespace ppbox
             }
             else
             {
-				assert(0);
+                assert(0);
                 //Ê§°ÜµÄ
-				static ppbox::common::HttpStatistics g_http_stat;
+                static ppbox::common::HttpStatistics g_http_stat;
                 return g_http_stat;
             }
         }

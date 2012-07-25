@@ -3,8 +3,9 @@
 #ifndef _PPBOX_COMMON_HTTP_FETCH_MANAGER_H_
 #define _PPBOX_COMMON_HTTP_FETCH_MANAGER_H_
 
-#include "ppbox/common/HttpFetch.h"
 #include "ppbox/common/VodVector.h"
+
+#include <ppbox/vod/HttpFetch.h>
 
 #include <boost/asio/streambuf.hpp>
 #include <ppbox/common/HttpStatistics.h>
@@ -32,7 +33,7 @@ namespace ppbox
             FetchHandle async_fetch(
                 framework::string::Url const & url 
                 ,framework::network::NetName const & server_host
-                ,HttpFetch::response_type const & resp);
+                ,ppbox::vod::HttpFetch::response_type const & resp);
 
             void cancel(FetchHandle h);
 
