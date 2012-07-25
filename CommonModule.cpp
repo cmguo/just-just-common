@@ -20,34 +20,29 @@ namespace ppbox
     namespace common
     {
 
-#if defined( PPBOX_SINGLE_PROCESS )
-        static framework::memory::PrivateMemory & open_shm(
-            framework::memory::PrivateMemory & shm )
-        {
-            return shm;
-        }
-#else
         static framework::memory::SharedMemory & open_shm(
             framework::memory::SharedMemory & shm)
         {
             boost::system::error_code ec;
             framework::memory::SharedMemory::remove(SHARED_MEMORY_INST_ID);
             if (shm.open(framework::memory::SharedMemory::no_user_id, 
-                framework::memory::SharedMemory::create 
+#if defined( PPBOX_SINGLE_PROCESS )
+                framework::memory::SharedMemory::private_ 
+#else
+                framework::memory::SharedMemory::default_ 
+#endif
+                | framework::memory::SharedMemory::create 
                 | framework::memory::SharedMemory::read_write, ec)) {
                     LOG_S(Logger::kLevelAlarm, "SharedMemory open: " << ec.message());
             }
             return shm;
         }
-#endif
 
         CommonModule::CommonModule(
             util::daemon::Daemon & daemon)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
             , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
-#if !defined( PPBOX_SINGLE_PROCESS )
             , shm_(SHARED_MEMORY_INST_ID)
-#endif
             , msg_queue_("CommonModule", open_shm(shm_))
         {
 //            assert(0);
@@ -58,9 +53,7 @@ namespace ppbox
             std::string const & name)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
             , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
-#if !defined( PPBOX_SINGLE_PROCESS )
             , shm_(SHARED_MEMORY_INST_ID)
-#endif
             , msg_queue_(name, open_shm(shm_))
 
         {

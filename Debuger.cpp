@@ -136,7 +136,7 @@ namespace ppbox
        }
 
         void Debuger::get_debug_msg(
-            MessageList & msgs, 
+            std::vector<Message> & msgs, 
             boost::int32_t size, 
             char const * module, 
             boost::int32_t level)

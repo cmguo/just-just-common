@@ -83,8 +83,8 @@ namespace ppbox
                 socket_.cancel(ec);
             }
 
-            work_thread_->join();
             if (work_thread_) {
+                work_thread_->join();
                 delete work_thread_;
                 work_thread_ = NULL;
             }
@@ -172,7 +172,7 @@ namespace ppbox
                 }
 
                 while (!exit_) {
-                    MessageList msgs;
+                    std::vector<Message> msgs;
                     std::string s_buf;
 
                     debuger_.get_debug_msg(msgs, 1, NULL, 5);

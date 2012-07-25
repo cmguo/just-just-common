@@ -5,17 +5,12 @@
 
 #include "ppbox/common/Environment.h"
 
-#define SHARED_MEMORY_INST_ID   1
-#define QUEUE_SHARED_MEMORY_INST_ID   1
+#define SHARED_MEMORY_INST_ID MESSAGE_QUEUE_SHARED_MEMORY_INST_ID
 
 #include <util/daemon/Module.h>
 #include <util/daemon/Daemon.h>
-#if defined( PPBOX_SINGLE_PROCESS )
+
 #include <framework/memory/SharedMemory.h>
-#include <framework/memory/PrivateMemory.h>
-#else
-#include <framework/memory/SharedMemory.h>
-#endif
 #include <framework/timer/AsioTimerManager.h>
 #include <framework/process/MessageQueue.h>
 
@@ -62,15 +57,10 @@ namespace ppbox
                 return env_;
             }
 
-#if defined( PPBOX_SINGLE_PROCESS )
-            framework::memory::PrivateMemory & shared_memory()
-#else
             framework::memory::SharedMemory & shared_memory()
-#endif
             {
                 return shm_;
             }
-
 
             framework::timer::TimerQueue & timer_queue()
             {
@@ -84,11 +74,7 @@ namespace ppbox
 
         private:
             Environment env_;
-#if defined( PPBOX_SINGLE_PROCESS )
-            framework::memory::PrivateMemory shm_;
-#else
             framework::memory::SharedMemory shm_;
-#endif
             framework::timer::AsioTimerManager tmgr_;
             framework::process::MessageQueue msg_queue_;
         };

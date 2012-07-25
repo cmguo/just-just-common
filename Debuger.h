@@ -66,7 +66,7 @@ namespace ppbox
 
             // 获取 Debug 信息
             void get_debug_msg(
-                MessageList & msgs, 
+                std::vector<Message> & msgs, 
                 boost::int32_t size, 
                 char const * module, 
                 boost::int32_t level);

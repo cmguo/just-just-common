@@ -35,11 +35,7 @@ namespace ppbox
             {
                 return common_.environment();
             }
-#if defined( PPBOX_SINGLE_PROCESS )
-            framework::memory::PrivateMemory & shared_memory()
-#else
             framework::memory::SharedMemory & shared_memory()
-#endif
             {
                 return common_.shared_memory();
             }
