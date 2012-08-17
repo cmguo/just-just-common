@@ -34,38 +34,37 @@ namespace ppbox
            
             bool is_open(
                 boost::system::error_code & ec);
-            
+
             boost::system::error_code cancel(
                 size_t segment, 
                 boost::system::error_code & ec);
-         
+
             boost::system::error_code close(
                 size_t segment, 
                 boost::system::error_code & ec);
-            
+
             std::size_t read(
                 const write_buffer_t & buffers,
                 boost::system::error_code & ec);
-            
 
             void async_read(
                 const write_buffer_t & buffers,
                 read_handle_type handler);
-           
+
             boost::uint64_t total(
                 boost::system::error_code & ec);
-            
+
             boost::system::error_code set_non_block(
                 bool non_block, 
                 boost::system::error_code & ec);
-           
+
             boost::system::error_code set_time_out(
                 boost::uint32_t time_out, 
                 boost::system::error_code & ec);
-           
+
             void set_http_connection(
                 util::protocol::http_field::Connection::TypeEnum connection);
-           
+
             bool continuable(
                 boost::system::error_code const & ec);
 

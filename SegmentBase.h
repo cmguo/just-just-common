@@ -81,7 +81,7 @@ namespace ppbox
         public:
             static SegmentBase * create(
                 boost::asio::io_service & io_svc,
-                std::string const & playlink);
+                framework::string::Url const & playlink);
 
             static void register_segment(
                 std::string const & name,
@@ -89,55 +89,42 @@ namespace ppbox
 
         public:
             virtual void set_url(
-                std::string const &url);
+                framework::string::Url const &url);
 
             virtual void async_open(
                 OpenMode mode,
                 response_type const & resp) = 0;
 
-            virtual void cancel
-                (boost::system::error_code & ec) = 0;
+            virtual void cancel() = 0;
 
-            virtual void close(
-                boost::system::error_code & ec)= 0;
-
-            virtual boost::system::error_code reset(
-                size_t & time) = 0;
-
-            virtual bool is_open() = 0;
-
-            virtual size_t segment_count() =0;
-
-            virtual boost::system::error_code segment_url(
-                size_t segment, 
-                framework::string::Url& url,
-                boost::system::error_code & ec) = 0;
-
-            virtual void segment_info(
-                size_t segment, 
-                SegmentInfo & info) = 0;
-
-            virtual bool next_segment(
-                size_t segment,
-                boost::uint32_t & out_time) = 0;
-
-            virtual void update_segment(
-                size_t segment) = 0;
-
-            virtual void update_segment_file_size(
-                size_t segment, boost::uint64_t fsize) = 0;
-
-            virtual void update_segment_duration(
-                size_t segment,
-                boost::uint32_t time) = 0;
-
-            virtual void update_segment_head_size(
-                size_t segment, 
-                boost::uint64_t hsize) = 0;
+            virtual void close()= 0;
 
             virtual boost::system::error_code get_duration(
                 DurationInfo & info,
                 boost::system::error_code & ec) = 0;
+
+        public:
+            virtual size_t segment_count() const = 0;
+
+            virtual std::string const segment_protocol() const
+            {
+                return get_protocol();
+            }
+
+            virtual boost::system::error_code segment_url(
+                size_t segment, 
+                framework::string::Url & url,
+                boost::system::error_code & ec) = 0;
+
+            virtual void segment_info(
+                size_t segment, 
+                SegmentInfo & info) const = 0;
+
+        public:
+            std::string const & get_protocol() const
+            {
+                return url_.protocol();
+            }
 
         protected:
             framework::string::Url url_;

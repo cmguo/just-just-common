@@ -33,33 +33,29 @@ namespace ppbox
             register_type func)
         {
             segment_map().insert(std::make_pair(name, func));
+            return;
         }
 
         SegmentBase * SegmentBase::create(
             boost::asio::io_service & io_svc,
-            std::string const & playlink)
+            framework::string::Url const & url)
         {
-            std::string::size_type pos_colon = playlink.find("://");
-            std::string name = "ppvod";
-            if (pos_colon == std::string::npos) {
-                pos_colon = 0;
-            } else {
-                name = playlink.substr(0, pos_colon);
-                pos_colon += 3;
-            }
-            std::map<std::string, register_type>::iterator iter = segment_map().find(name);
+            std::map<std::string, register_type>::iterator iter = 
+                segment_map().find(url.protocol());
             if (segment_map().end() == iter) {
                 return NULL;
             } else {
                 register_type func = iter->second;
-                return func(io_svc);
+                SegmentBase * segment = func(io_svc);
+                segment->set_url(url);
+                return segment;
             }
         }
 
         void SegmentBase::set_url(
-            std::string const &url)
+            framework::string::Url const &url)
         {
-            url_.from_string(url);
+            url_ = url;
         }
 
     }//common

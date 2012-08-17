@@ -15,8 +15,8 @@
 
 #include <map>
 
-#define PPBOX_REGISTER_SOURCE(n, p, c) \
-    static ppbox::common::Call reg_ ## n(ppbox::common::SourceBase::register_source, BOOST_PP_STRINGIZE(n), p, ppbox::common::Creator<c>())
+#define PPBOX_REGISTER_SOURCE(n, c) \
+    static ppbox::common::Call reg_ ## n(ppbox::common::SourceBase::register_source, BOOST_PP_STRINGIZE(n), ppbox::common::Creator<c>())
 
 namespace ppbox
 {
@@ -46,12 +46,11 @@ namespace ppbox
         public:
             static void register_source(
                 std::string const & name,
-                boost::uint8_t priority, 
                 register_type func);
             
             static SourceBase * create(
                 boost::asio::io_service & io_svc,
-                std::string const & playlink);
+                std::string const & proto);
 
             static void destory(
                 SourceBase * SourceBase);
@@ -125,7 +124,7 @@ namespace ppbox
             }
         private:
             boost::asio::io_service &ios_;
-            static std::map< std::string, std::pair<register_type , boost::uint8_t> > & source_map();
+            static std::map< std::string, SourceBase::register_type > & source_map();
         };
 
     } // namespace common
