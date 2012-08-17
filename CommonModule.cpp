@@ -41,8 +41,8 @@ namespace ppbox
         CommonModule::CommonModule(
             util::daemon::Daemon & daemon)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
-            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
             , shm_(SHARED_MEMORY_INST_ID)
+            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
             , msg_queue_("CommonModule", open_shm(shm_))
         {
 //            assert(0);
@@ -52,8 +52,8 @@ namespace ppbox
             util::daemon::Daemon & daemon, 
             std::string const & name)
             : util::daemon::ModuleBase<CommonModule>(daemon, "CommonModule")
-            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
             , shm_(SHARED_MEMORY_INST_ID)
+            , tmgr_(io_svc(), boost::posix_time::milliseconds(500))
             , msg_queue_(name, open_shm(shm_))
 
         {
