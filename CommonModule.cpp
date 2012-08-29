@@ -5,9 +5,9 @@
 #include "ppbox/common/ConfigMgr.h"
 
 #include <framework/process/MessageQueue.h>
-#include <framework/logger/LoggerStreamRecord.h>
+#include <framework/logger/Logger.h>
+#include <framework/logger/StreamRecord.h>
 #include <framework/configure/Config.h>
-#include <framework/logger/LogMsgStream.h>
 using namespace framework::logger;
 using namespace framework::process;
 using namespace framework::configure;
@@ -33,7 +33,7 @@ namespace ppbox
 #endif
                 | framework::memory::SharedMemory::create 
                 | framework::memory::SharedMemory::read_write, ec)) {
-                    LOG_S(Logger::kLevelAlarm, "SharedMemory open: " << ec.message());
+                    LOG_WARN("SharedMemory open: " << ec.message());
             }
             return shm;
         }

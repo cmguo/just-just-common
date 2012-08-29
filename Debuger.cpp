@@ -6,8 +6,10 @@
 #include <framework/timer/Timer.h>
 #include <framework/timer/TimeCounter.h>
 #include <framework/string/Format.h>
-#include <framework/logger/LoggerStreamRecord.h>
+#include <framework/logger/Logger.h>
+#include <framework/logger/StreamRecord.h>
 using namespace framework::string;
+using namespace framework::logger;
 
 #include <boost/bind.hpp>
 using namespace boost::system;
@@ -130,7 +132,7 @@ namespace ppbox
             timer_ = NULL;
 
             if (out_streamed) {
-                LOG_S(Logger::kLevelEvent, "[shutdown] leave debug mode");
+                LOG_INFO("[shutdown] leave debug mode");
                 global_logger().del_stream(debug_log_stream_);
             }
        }
@@ -192,9 +194,9 @@ namespace ppbox
                     }
                     out_streamed = true;
                     global_logger().add_stream(debug_log_stream_);
-                    LOG_S(Logger::kLevelEvent, "[check_debug_mode] enter debug mode");
+                    LOG_INFO("[check_debug_mode] enter debug mode");
                 } else  if (*debug_mode_ == 0 && debug_log_stream_) {
-                    LOG_S(Logger::kLevelEvent, "[check_debug_mode] leave debug mode");
+                    LOG_INFO("[check_debug_mode] leave debug mode");
                     out_streamed = false;
                     global_logger().del_stream(debug_log_stream_);
                 }
@@ -215,7 +217,7 @@ namespace ppbox
                 msg_push.receiver = msg_pop.sender;
                 msg_queue().push(msg_push);
 
-                LOG_S(Logger::kLevelDebug, "[handle_timer] msg: data = " << msg_pop.data 
+                LOG_DEBUG("[handle_timer] msg: data = " << msg_pop.data 
                     << ", sender = " << msg_pop.sender
                     << ", receiver = " << msg_pop.receiver 
                     << ", level = " << msg_pop.level);
