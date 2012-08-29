@@ -3,9 +3,6 @@
 #ifndef _PPBOX_COMMON_DEBUGER_H_
 #define _PPBOX_COMMON_DEBUGER_H_
 
-#include <framework/logger/LogMsgStream.h>
-using namespace framework::logger;
-
 #include <framework/process/MessageQueue.h>
 using namespace framework::process;
 
