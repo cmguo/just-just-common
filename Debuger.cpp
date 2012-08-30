@@ -3,13 +3,15 @@
 #include "ppbox/common/Common.h"
 #include "ppbox/common/Debuger.h"
 
+#include <util/buffers/BuffersCopy.h>
+
 #include <framework/timer/Timer.h>
 #include <framework/timer/TimeCounter.h>
 #include <framework/string/Format.h>
-#include <framework/logger/LoggerStreamRecord.h>
+#include <framework/container/Array.h>
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
-#include <framework/logger/LogMsgStream.h>
+#include <framework/logger/Stream.h>
 using namespace framework::string;
 using namespace framework::logger;
 using namespace framework::process;
@@ -25,13 +27,26 @@ using namespace boost::system;
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("Debuger", 0)
 
+namespace boost
+{
+    namespace asio
+    {
+
+        inline const_buffers_1 buffer(Stream::buffer_t const & data)
+        {
+            return const_buffers_1(const_buffer(data.buf, data.len));
+        }
+
+    }
+}
+
 namespace ppbox
 {
     namespace common
     {
 
         class HookLogStream
-            : public IWriteStream
+            : public Stream
         {
         public:
             HookLogStream()
@@ -47,20 +62,25 @@ namespace ppbox
             }
 
             virtual void write(
-                char const * logmsg)
+                buffer_t const * bufs, 
+                size_t len)
             {
                 if (!callback_)
                     return;
-                callback_(logmsg, strlen(logmsg));
+                size_t size = util::buffers::buffers_copy(
+                    boost::asio::buffer((void *)buf_, sizeof(buf_)), 
+                    framework::container::make_array(bufs, len));
+                callback_(buf_, size);
             }
 
         private:
             Debuger::on_logdump_type callback_;
+            char buf_[1024];
         };
 
         // 写入消息队列
         class MsgQueueStream 
-            : public IWriteStream
+            : public Stream
         {
         public:
             MsgQueueStream(
@@ -70,10 +90,11 @@ namespace ppbox
             }
 
             virtual void write(
-                char const * logmsg)
+                buffer_t const * bufs, 
+                size_t len)
             {
                 framework::process::Message msg;
-                parse_log(logmsg, msg);
+                parse_log(msg, bufs, len);
                 if (!msg.receiver.empty()) {
                     m_msgqueue_.push(msg);
                 }
@@ -81,26 +102,18 @@ namespace ppbox
 
             // 解析日志
             void parse_log(
-                std::string const & log, 
-                framework::process::Message & msg)
+                framework::process::Message & msg, 
+                buffer_t const * bufs, 
+                size_t len)
             {
-                if (log.empty()) return;
-
-                std::string::size_type q = log.find('[');
-                if (q == std::string::npos) return;
-                std::string::size_type r = log.find(']', q);
-                if (r == std::string::npos) return;
-                std::string level = log.substr(q + 1, r - 1);
-                if ("ERROR" == level) msg.level = 1;
-                else if ("ALARM" == level) msg.level = 2;
-                else if ("EVENT" == level) msg.level = 3;
-                else if ("INFOR" == level) msg.level = 4;
-                else if ("DEBUG" == level) msg.level = 5;
-                else return;
-
+                msg.level = 1;
                 msg.receiver = "Debuger";
                 msg.type = MSGTYPELOG;
-                msg.data = log;
+                msg.data.resize(1024);
+                size_t size = util::buffers::buffers_copy(
+                    boost::asio::buffer(&msg.data[0], msg.data.size()), 
+                    framework::container::make_array(bufs, len));
+                msg.data.resize(size);
             }
 
             virtual ~MsgQueueStream()
@@ -161,12 +174,12 @@ namespace ppbox
             timer_ = NULL;
 
             if (hook_streamed_) {
-                global_logger().del_stream(hook_log_stream_);
+                del_stream(global_logger(), *hook_log_stream_);
             }
 
             if (out_streamed_) {
                 LOG_INFO("[shutdown] leave debug mode");
-                global_logger().del_stream(debug_log_stream_);
+                del_stream(global_logger(), *debug_log_stream_);
             }
        }
 
@@ -190,7 +203,7 @@ namespace ppbox
         {
             if (hook == NULL) {
                 if (hook_log_stream_) {
-                    global_logger().del_stream(hook_log_stream_);
+                    del_stream(global_logger(), *hook_log_stream_);
                     hook_log_stream_->set_log_dump(hook, 0);
                 }
                 hook_streamed_ = false;
@@ -200,7 +213,7 @@ namespace ppbox
                 }
                 hook_log_stream_->set_log_dump(hook, level);
                 hook_streamed_ = true;
-                global_logger().add_stream(hook_log_stream_);
+                add_stream(global_logger(), *hook_log_stream_);
             }
         }
 
@@ -246,12 +259,12 @@ namespace ppbox
                         debug_log_stream_ = new MsgQueueStream(msg_queue());
                     }
                     out_streamed_ = true;
-                    global_logger().add_stream(debug_log_stream_);
+                    add_stream(global_logger(), *debug_log_stream_);
                     LOG_INFO("[check_debug_mode] enter debug mode");
                 } else  if (*debug_mode_ == 0 && debug_log_stream_) {
                     LOG_INFO("[check_debug_mode] leave debug mode");
                     out_streamed_ = false;
-                    global_logger().del_stream(debug_log_stream_);
+                    del_stream(global_logger(), *debug_log_stream_);
                 }
             }
         }
