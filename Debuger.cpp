@@ -6,10 +6,13 @@
 #include <framework/timer/Timer.h>
 #include <framework/timer/TimeCounter.h>
 #include <framework/string/Format.h>
+#include <framework/logger/LoggerStreamRecord.h>
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
+#include <framework/logger/LogMsgStream.h>
 using namespace framework::string;
 using namespace framework::logger;
+using namespace framework::process;
 
 #include <boost/bind.hpp>
 using namespace boost::system;
@@ -27,13 +30,33 @@ namespace ppbox
     namespace common
     {
 
-        OuterLogStream & getOuterLogStream()
+        class HookLogStream
+            : public IWriteStream
         {
-            static OuterLogStream ols( NULL, 0 );
-            return ols;
-        }
+        public:
+            HookLogStream()
+                : callback_(NULL)
+            {
+            }
 
-        OuterLogStream & outerLogStream = getOuterLogStream();
+            void set_log_dump(
+                Debuger::on_logdump_type callback, 
+                boost::uint32_t level)
+            {
+                callback_ = callback;
+            }
+
+            virtual void write(
+                char const * logmsg)
+            {
+                if (!callback_)
+                    return;
+                callback_(logmsg, strlen(logmsg));
+            }
+
+        private:
+            Debuger::on_logdump_type callback_;
+        };
 
         // 写入消息队列
         class MsgQueueStream 
@@ -92,9 +115,11 @@ namespace ppbox
             util::daemon::Daemon & daemon)
             : ppbox::common::CommonModuleBase<Debuger>(daemon, "Debuger")
             , debug_log_stream_(NULL)
+            , hook_log_stream_(NULL)
             , timer_(NULL)
             , msg_queue_("Debuger", shared_memory())
-            , out_streamed(false)
+            , out_streamed_(false)
+            , hook_streamed_(false)
         {
             debug_mode_ = (boost::uint32_t *)shared_memory().alloc_with_id(DEBUG_OBJECT_ID, sizeof(boost::uint32_t));
             if (debug_mode_) {
@@ -108,6 +133,10 @@ namespace ppbox
 
         Debuger::~Debuger()
         {
+            if (hook_log_stream_) {
+                delete hook_log_stream_;
+                hook_log_stream_ = NULL;
+            }
             if (debug_log_stream_) {
                 delete debug_log_stream_;
                 debug_log_stream_ = NULL;
@@ -131,7 +160,11 @@ namespace ppbox
             delete timer_;
             timer_ = NULL;
 
-            if (out_streamed) {
+            if (hook_streamed_) {
+                global_logger().del_stream(hook_log_stream_);
+            }
+
+            if (out_streamed_) {
                 LOG_INFO("[shutdown] leave debug mode");
                 global_logger().del_stream(debug_log_stream_);
             }
@@ -149,6 +182,26 @@ namespace ppbox
             if (module)
                 msg.sender = module;
             msg_queue_.pop(msgs, msg, size);
+        }
+
+        void Debuger::set_log_hook(
+            on_logdump_type hook, 
+            size_t level)
+        {
+            if (hook == NULL) {
+                if (hook_log_stream_) {
+                    global_logger().del_stream(hook_log_stream_);
+                    hook_log_stream_->set_log_dump(hook, 0);
+                }
+                hook_streamed_ = false;
+            } else {
+                if (!hook_log_stream_) {
+                    hook_log_stream_ = new HookLogStream;
+                }
+                hook_log_stream_->set_log_dump(hook, level);
+                hook_streamed_ = true;
+                global_logger().add_stream(hook_log_stream_);
+            }
         }
 
         void Debuger::change_debug_mode(
@@ -192,12 +245,12 @@ namespace ppbox
                     if (!debug_log_stream_) {
                         debug_log_stream_ = new MsgQueueStream(msg_queue());
                     }
-                    out_streamed = true;
+                    out_streamed_ = true;
                     global_logger().add_stream(debug_log_stream_);
                     LOG_INFO("[check_debug_mode] enter debug mode");
                 } else  if (*debug_mode_ == 0 && debug_log_stream_) {
                     LOG_INFO("[check_debug_mode] leave debug mode");
-                    out_streamed = false;
+                    out_streamed_ = false;
                     global_logger().del_stream(debug_log_stream_);
                 }
             }

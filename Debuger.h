@@ -4,47 +4,24 @@
 #define _PPBOX_COMMON_DEBUGER_H_
 
 #include <framework/process/MessageQueue.h>
-using namespace framework::process;
 
 namespace ppbox
 {
     namespace common
     {
 
-        typedef void ( * on_logdump_type )( char const *, boost::uint32_t );
-        class OuterLogStream
-            : public IWriteStream
-        {
-        public:
-            OuterLogStream(
-                on_logdump_type callback, boost::uint32_t level)
-            : callback_( callback )
-            {
-            }
-
-            void set_log_dump( on_logdump_type callback, boost::uint32_t level )
-            {
-                callback_ = callback;
-            }
-
-            virtual void write(
-                char const * logmsg)
-            {
-                if ( !logmsg ) return;
-                callback_( logmsg, strlen( logmsg ) );
-            }
-
-        private:
-            on_logdump_type callback_;
-        };
-
-        extern OuterLogStream & outerLogStream;
+        class HookLogStream;
 
         class MsgQueueStream;
 
         class Debuger
             : public ppbox::common::CommonModuleBase<Debuger>
         {
+        public:
+            typedef void (* on_logdump_type)(
+                char const *, 
+                boost::uint32_t);
+
         public:
             Debuger(
                 util::daemon::Daemon & daemon);
@@ -63,10 +40,14 @@ namespace ppbox
 
             // 获取 Debug 信息
             void get_debug_msg(
-                std::vector<Message> & msgs, 
+                std::vector<framework::process::Message> & msgs, 
                 boost::int32_t size, 
                 char const * module, 
                 boost::int32_t level);
+
+            void set_log_hook(
+                on_logdump_type hook, 
+                size_t level);
 
         private:
             void check_debug_mode();
@@ -76,9 +57,11 @@ namespace ppbox
         private:
             boost::uint32_t * debug_mode_;
             MsgQueueStream * debug_log_stream_;
+            HookLogStream * hook_log_stream_;
             framework::timer::Timer * timer_;
             framework::process::MessageQueue msg_queue_;
-            bool out_streamed;
+            bool out_streamed_;
+            bool hook_streamed_;
         };
 
     } // namespace common

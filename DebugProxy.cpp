@@ -7,6 +7,7 @@
 
 #include <framework/network/NetName.h>
 using namespace framework::logger;
+using namespace framework::process;
 
 #include <util/protocol/http/HttpRequest.h>
 #include <util/protocol/http/HttpResponse.h>
