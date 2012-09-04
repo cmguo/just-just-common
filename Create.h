@@ -21,6 +21,21 @@ namespace ppbox
             {
                 return new Class(arg1);
             }
+
+            template <
+                typename Arg1,
+                typename Arg2
+            >
+            Class * operator()(
+                Arg1 & arg1, Arg2 & arg2)
+            {
+                return new Class(arg1, arg2);
+            }
+
+            Class * operator()()
+            {
+                return new Class;
+            }
         };
 
     }
