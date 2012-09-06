@@ -59,6 +59,7 @@ namespace ppbox
                 boost::uint32_t level)
             {
                 callback_ = callback;
+                level_ = level;
             }
 
             virtual void write(
