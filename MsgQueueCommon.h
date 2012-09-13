@@ -2,8 +2,11 @@
 #ifndef _PPBOX_COMMON_MSGQ_COMMON_H_
 #define _PPBOX_COMMON_MSGQ_COMMON_H_
 
-#include <framework/string/Url.h>
+
 #include "ppbox/common/Sinks.h"
+#include "ppbox/common/CommonError.h"
+
+#include <framework/string/Url.h>
 
 #include <string>
 
@@ -56,7 +59,12 @@ namespace ppbox
 
             virtual boost::system::error_code doing()
             {
-                return boost::system::error_code();
+                return error::not_support;
+            }
+
+            virtual boost::system::error_code seek(boost::uint32_t beg)
+            {
+                return error::not_support;
             }
 
             void stop()
