@@ -342,7 +342,6 @@ namespace ppbox
             boost::uint32_t session_id,
             size_t control,
             util::stream::Sink* sink,
-            std::string& info,
             boost::system::error_code& ec)
         {
             assert(NULL != cur_mov_);
