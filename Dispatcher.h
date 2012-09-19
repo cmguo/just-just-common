@@ -91,26 +91,26 @@ namespace ppbox
             void thread_dispatch();
             boost::system::error_code thread_command(PlayInterface* pMsgType);
 
-            void async_open_Zero(
+            void async_open_zero(
                 framework::string::Url const & playlink
                 , boost::uint32_t const session_id
                 ,ppbox::common::session_callback_respone const &resp);
 
-            void async_open_One(
+            void async_open_one(
                 framework::string::Url const & playlink
                 , boost::uint32_t const session_id
                 ,ppbox::common::session_callback_respone const &resp);
 
-            void async_open_Two(
+            void async_open_two(
                 framework::string::Url const & playlink
                 , boost::uint32_t const session_id
                 ,ppbox::common::session_callback_respone const &resp);
 
-            void open_callback_One(boost::system::error_code const & ec);
-            void open_callback_Two(boost::system::error_code const & ec);
+            void open_callback_one(boost::system::error_code const & ec);
+            void open_callback_two(boost::system::error_code const & ec);
 
-            void play_callback_One(boost::system::error_code const & ec);
-            void play_callback_Two(boost::system::error_code const & ec);
+            void play_callback_one(boost::system::error_code const & ec);
+            void play_callback_two(boost::system::error_code const & ec);
 
             void close_one(Session* s);
             void close_two(Session* s);

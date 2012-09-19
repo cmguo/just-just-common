@@ -37,22 +37,22 @@ namespace ppbox
 
             if (NULL == append_mov_)
             {
-                async_open_Zero(playlink,session_id,resp);
+                async_open_zero(playlink,session_id,resp);
             } 
             else
             {
                 if (append_mov_ == cur_mov_)
                 {
-                    async_open_One(playlink,session_id,resp);
+                    async_open_one(playlink,session_id,resp);
                 } 
                 else
                 {
-                    async_open_Two(playlink,session_id,resp);
+                    async_open_two(playlink,session_id,resp);
                 }
             }
         }
 
-        void Dispatcher::async_open_Zero(
+        void Dispatcher::async_open_zero(
             framework::string::Url const & playlink
             , boost::uint32_t const session_id
             ,ppbox::common::session_callback_respone const &resp)
@@ -76,7 +76,7 @@ namespace ppbox
         }
 
         //已经有一部电影了
-        void Dispatcher::async_open_One(
+        void Dispatcher::async_open_one(
             framework::string::Url const & playlink
             , boost::uint32_t const session_id
             ,ppbox::common::session_callback_respone const &resp)
@@ -153,31 +153,22 @@ namespace ppbox
             }
             else
             {//
+                if (cur_mov_->sessions_.size() < 1)
+                {
+                    ++time_id_;
+                    cancel_wait(ec);
+                } 
+                cur_mov_->sessions_.push_back(s);
+
                 if (cur_mov_->openned_)
                 {// openned playling close_delay next_session
-                    
-                    if (cur_mov_->sessions_.size() < 1)
-                    {
-                        ++time_id_;
-                        cancel_wait(ec);
-                    } 
-                    cur_mov_->sessions_.push_back(s);
-                    resp(ec); //先回调成功
+                    daemon_.io_svc().post(boost::bind(resp,ec));
                 } 
-                else
-                {// openning cancel_delay
-                    if (cur_mov_->sessions_.size() < 1)
-                    {
-                        ++time_id_;
-                        cancel_wait(ec);
-                    }
-                    cur_mov_->sessions_.push_back(s);
-                }
             }
         }
 
         //已经有两部电影
-        void Dispatcher::async_open_Two(
+        void Dispatcher::async_open_two(
             framework::string::Url const & playlink
             , boost::uint32_t const session_id
             ,ppbox::common::session_callback_respone const &resp)
@@ -206,15 +197,15 @@ namespace ppbox
             assert(!cur_mov_->openned_);
             if (cur_mov_ == append_mov_)
             {
-                open_callback_One(ec);
+                open_callback_one(ec);
             }
             else
             {
-                open_callback_Two(ec);
+                open_callback_two(ec);
             }
         }
 
-        void Dispatcher::open_callback_One(boost::system::error_code const & ec)
+        void Dispatcher::open_callback_one(boost::system::error_code const & ec)
         {//  openning  cancel_delay 
             if (!ec)
             {
@@ -247,7 +238,7 @@ namespace ppbox
 
         }
 
-        void Dispatcher::open_callback_Two(boost::system::error_code const & ec)
+        void Dispatcher::open_callback_two(boost::system::error_code const & ec)
         {// canceling
             assert(cur_mov_ != append_mov_);
             assert(cur_mov_->sessions_.size() < 1);
@@ -271,15 +262,15 @@ namespace ppbox
         { // playling  next_session  play_canceling
             if (cur_mov_ == append_mov_)
             {
-                play_callback_One(ec);
+                play_callback_one(ec);
             }
             else
             {
-                play_callback_Two(ec);
+                play_callback_two(ec);
             }
         }
 
-        void Dispatcher::play_callback_One(boost::system::error_code const & ec)
+        void Dispatcher::play_callback_one(boost::system::error_code const & ec)
         {//playling  next_session
             if (NULL != cur_mov_->append_session_)
             {//next_session
@@ -316,7 +307,7 @@ namespace ppbox
             }
         }
 
-        void Dispatcher::play_callback_Two(boost::system::error_code const & ec)
+        void Dispatcher::play_callback_two(boost::system::error_code const & ec)
         {//play_canceling
             assert(cur_mov_->sessions_.size() > 0);
             boost::system::error_code ec1;
@@ -371,7 +362,7 @@ namespace ppbox
         void Dispatcher::buffering_callback(boost::system::error_code const & ec)
         {
             assert(append_mov_ != cur_mov_);
-            play_callback_Two(ec);
+            play_callback_two(ec);
         }
 
         void Dispatcher::wait_callback(const boost::uint32_t time_id,boost::system::error_code const & ec)
@@ -444,7 +435,7 @@ namespace ppbox
                     clear_session(cur_mov_,cur_mov_->append_session_);
 
                     //s加入排队播放
-                    cur_mov_->append_session_ == s;
+                    cur_mov_->append_session_ = s;
                     s->playlist_.push_back(player);
                 }
             
@@ -455,7 +446,7 @@ namespace ppbox
                 {
                     resonse_player(cur_mov_->cur_session_,ec);
                     cancel_open_playlink(ec);
-                    cur_mov_->append_session_ == s;
+                    cur_mov_->append_session_ = s;
                 } 
                 s->playlist_.push_back(player);
             }
@@ -526,7 +517,7 @@ namespace ppbox
             //openning openned  next_session playling
             if (!cur_mov_->openned_)
             {//openning
-                s->resp_(ec);
+                daemon_.io_svc().post(boost::bind(s->resp_,ec));
             }
             else
             {//openned  next_session playling
@@ -678,7 +669,7 @@ namespace ppbox
                         ++iter)
                     {
                         s = (*iter);
-                        s->resp_(ec);
+                        daemon_.io_svc().post(boost::bind(s->resp_,ec));
                     }
                 }
                 break;
@@ -703,7 +694,7 @@ namespace ppbox
                         ++iter)
                     {
                         s = (*iter);
-                        s->resp_(ec);
+                        daemon_.io_svc().post(boost::bind(s->resp_,ec));
                         delete s;
                     }
                     move->sessions_.clear();

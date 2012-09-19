@@ -62,10 +62,6 @@ namespace ppbox
                 return error::not_support;
             }
 
-            virtual boost::system::error_code seek(boost::uint32_t beg)
-            {
-                return error::not_support;
-            }
 
             void stop()
             {
