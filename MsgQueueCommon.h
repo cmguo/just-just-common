@@ -57,12 +57,6 @@ namespace ppbox
 
             }
 
-            virtual boost::system::error_code doing()
-            {
-                return error::not_support;
-            }
-
-
             void stop()
             {
                 exit_ = true;
@@ -72,7 +66,7 @@ namespace ppbox
             {
                 playing_ = false;
             }
-            
+
             void resume()
             {
                 playing_ = true;
@@ -114,18 +108,22 @@ namespace ppbox
         struct Session
         {
             Session()
-                :session_id_(-1)
+                : session_id_(-1)
             {
             }
 
-            Session(boost::uint32_t session_id
+            Session(
+                boost::uint32_t session_id
+                , std::string format
                 , ppbox::common::session_callback_respone resp)
                 :session_id_(session_id)
+                , format_(format)
                 ,resp_(resp)
             {
 
             }
 
+            std::string format_;
             boost::uint32_t session_id_; 
             Sinks sinks_;
             typedef std::vector<Player>::iterator Iter;
@@ -142,13 +140,22 @@ namespace ppbox
             {
             }
 
+             Movie(
+                 const std::string& play_link,
+                 const framework::string::Url& params,
+                 Session *s)
+                 : play_link_(play_link)
+                 ,params_(params)
+             {
+                sessions_.push_back(s);
+             }
+
             virtual ~Movie()
             {
 
             }
 
             std::string play_link_;
-            std::string format_;
             framework::string::Url params_;
             Session* cur_session_;
             Session* append_session_;

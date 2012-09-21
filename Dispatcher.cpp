@@ -4,21 +4,19 @@
 #include "ppbox/common/CommonError.h"
 
 #include <boost/bind.hpp>
-#include <boost/thread/thread.hpp>
-#include <framework/thread/MessageQueue.h>
 
 namespace ppbox
 {
     namespace common
     {  
         Dispatcher::Dispatcher(
-            util::daemon::Daemon & daemon)
-            :daemon_(daemon)
+            boost::asio::io_service& ios)
+            :ios_(ios)
+            , timer_(ios_)
             ,cur_mov_(NULL)
             ,append_mov_(NULL)
             , time_id_(0)
         {
-            msgq_ = new framework::thread::MessageQueue<PlayInterface*>;
         }
 
         Dispatcher::~Dispatcher()
@@ -34,166 +32,112 @@ namespace ppbox
             static size_t g_session_id = rand();
             session_id = g_session_id++;
 
-
+            boost::system::error_code ec;
+            ppbox::common::ParseUrlTool url_tool(playlink);
+            std::string play_link = url_tool.playlink();
+            std::string format = url_tool.format();
+            
+            Session* s = new Session(session_id,format,resp);
             if (NULL == append_mov_)
             {
-                async_open_zero(playlink,session_id,resp);
-            } 
+                cur_mov_ = new Movie(play_link,playlink,s);
+
+                append_mov_ = cur_mov_;
+                async_open_playlink(play_link,boost::bind(&Dispatcher::open_callback,this,_1));
+            }
             else
             {
-                if (append_mov_ == cur_mov_)
+                if (append_mov_->play_link_ == play_link)
                 {
-                    async_open_one(playlink,session_id,resp);
-                } 
+                    append_mov_->sessions_.push_back(s);
+                    if (append_mov_->openned_)
+                    {
+                        ios_.post(boost::bind(resp,ec));
+                    }
+                }
                 else
                 {
-                    async_open_two(playlink,session_id,resp);
-                }
-            }
-        }
+                    if (append_mov_ == cur_mov_)
+                    {
+                        if (false)//openned
+                        {//如果是已经打开，且都已回调
+                            resonse_session(cur_mov_,SF_NONE_NO_RESP);
+                            
+                            close_playlink(ec);
 
-        void Dispatcher::async_open_zero(
-            framework::string::Url const & playlink
-            , boost::uint32_t const session_id
-            ,ppbox::common::session_callback_respone const &resp)
-        {
-            boost::system::error_code ec;
+                            async_open_playlink(play_link,boost::bind(&Dispatcher::open_callback,this,_1));
 
-            ppbox::common::ParseUrlTool url_tool(playlink);
-            std::string play_link = url_tool.playlink();
-            std::string format = url_tool.format();
+                            delete append_mov_;
+                            append_mov_ = new Movie(play_link,playlink,s);
+                            cur_mov_ = append_mov_;
 
-            Session* s = new Session(session_id,resp);
-
-            cur_mov_ = new Movie();
-            cur_mov_->play_link_= play_link;
-            cur_mov_->format_ = format;
-            cur_mov_->params_ = playlink;
-            cur_mov_->sessions_.push_back(s);
-
-            append_mov_ = cur_mov_;
-            async_open_playlink(play_link,boost::bind(&Dispatcher::open_callback,this,_1));
-        }
-
-        //已经有一部电影了
-        void Dispatcher::async_open_one(
-            framework::string::Url const & playlink
-            , boost::uint32_t const session_id
-            ,ppbox::common::session_callback_respone const &resp)
-        {
-            boost::system::error_code ec;
-
-            ppbox::common::ParseUrlTool url_tool(playlink);
-            std::string play_link = url_tool.playlink();
-            std::string format = url_tool.format();
-
-            Session* s = new Session(session_id,resp);
-
-            if (play_link != cur_mov_->play_link_
-                || format != cur_mov_->format_)
-            {
-                append_mov_ = new Movie();
-                append_mov_->play_link_= play_link;
-                append_mov_->format_ = format;
-                append_mov_->params_ = playlink;
-                append_mov_->sessions_.push_back(s);
-
-                if (cur_mov_->openned_)
-                {// openned playling close_delay next_session
-                    if (cur_mov_->sessions_.size() > 0)
-                    {//openned playling next_session
-                        if (cur_mov_->append_session_ != NULL)
-                        {//next_session
-                            resonse_player(cur_mov_->append_session_,boost::asio::error::operation_aborted);
-                            resonse_session(cur_mov_,boost::asio::error::operation_aborted,SF_FRONT_NO_RESP);
-                            cur_mov_->append_session_ = NULL;
                         }
                         else
                         {
-                            if (cur_mov_->sessions_[0]->playlist_.size() > 0)
-                            {//playing
-                                resonse_player(cur_mov_->sessions_[0],boost::asio::error::operation_aborted);
-                                resonse_session(cur_mov_,boost::asio::error::operation_aborted,SF_FRONT_NO_RESP);
-                                cancel_play_playlink(ec);
-
-                            } 
-                            else
-                            {//openned  转openning状态
-                                resonse_session(cur_mov_,boost::asio::error::operation_aborted,SF_NONE);
-                                close_format(ec);
-                                close_playlink(ec);
-                                delete cur_mov_;
-                                cur_mov_ = append_mov_;
-
-                                async_open_playlink(play_link,boost::bind(&Dispatcher::open_callback,this,_1));
-                                append_mov_->openned_ = false;
-                            }
+                            cancel_session(cur_mov_);
+                            append_mov_ = new Movie(play_link,playlink,s);
                         }
-                    } 
-                    else
-                    {//close_delay
-                        ++time_id_;
-                        cancel_wait(ec);
-                        cancel_buffering(ec);
-                    }
-                } 
-                else
-                {// openning cancel_delay
-                    if (cur_mov_->sessions_.size() > 0)
-                    {//openning
-                        resonse_session(cur_mov_,boost::asio::error::operation_aborted,SF_NONE);
                     }
                     else
-                    {//cancel_delay
-                        ++time_id_;
-                        cancel_wait(ec);
+                    {
+                        //替换append_
+                        resonse_session(cur_mov_,SF_NONE);
+                        delete append_mov_;
+                        append_mov_ = NULL;
+                        append_mov_ = new Movie(play_link,playlink,s);
                     }
-                    cancel_open_playlink(ec);
+
+                    
                 }
             }
-            else
-            {//
-                if (cur_mov_->sessions_.size() < 1)
-                {
-                    ++time_id_;
-                    cancel_wait(ec);
-                } 
-                cur_mov_->sessions_.push_back(s);
-
-                if (cur_mov_->openned_)
-                {// openned playling close_delay next_session
-                    daemon_.io_svc().post(boost::bind(resp,ec));
-                } 
-            }
         }
-
-        //已经有两部电影
-        void Dispatcher::async_open_two(
-            framework::string::Url const & playlink
-            , boost::uint32_t const session_id
-            ,ppbox::common::session_callback_respone const &resp)
+        void Dispatcher::cancel_play(Session* s)
         {
-            ppbox::common::ParseUrlTool url_tool(playlink);
-            std::string play_link = url_tool.playlink();
-            std::string format = url_tool.format();
-
-            Session* s = new Session(session_id,resp);
-
-//canceling  play_canceling
-            if (play_link != cur_mov_->play_link_
-                || format != cur_mov_->format_)
-            {
-                resonse_session(append_mov_,boost::asio::error::operation_aborted,SF_NONE);
-                append_mov_->play_link_= play_link;
-                append_mov_->format_ = format;
-                append_mov_->params_ = playlink;
-            }
-
-            append_mov_->sessions_.push_back(s);
+            
         }
+
+        void Dispatcher::cancel_session(Movie* move)
+        {
+            boost::system::error_code ec;
+            //判断  playing buffering openning
+            if (!move->openned_)
+            {
+                if (move->sessions_.size() > 0)
+                {
+                    resonse_session(move,SF_NONE);
+                }
+
+                cancel_open_playlink(ec);
+            }
+            else if (move->append_session_)
+            {
+                if (move->append_session_->playlist_.size() > 0)
+                {
+                    resonse_player(move->append_session_);
+                }
+                resonse_session(move,SF_FRONT_NO_RESP);
+            }
+            else if (move->cur_session_)
+            {
+                if (move->cur_session_->playlist_.size() > 0)
+                {
+                    resonse_player(move->cur_session_);
+                }
+                resonse_session(move,SF_NONE_NO_RESP);
+                cancel_play_playlink(ec);
+            }
+            else
+            {
+                ++time_id_;
+                cancel_wait(ec);
+
+                cancel_buffering(ec);
+            }
+        }
+
 
         void Dispatcher::open_callback(boost::system::error_code const & ec)
-        {
+        {//canceling openning  cancel_delay 
             assert(!cur_mov_->openned_);
             if (cur_mov_ == append_mov_)
             {
@@ -213,9 +157,8 @@ namespace ppbox
                 if (cur_mov_->sessions_.size() > 0)
                 {//openning
                     boost::system::error_code ec1;
-                    open_format(cur_mov_->format_,ec1);
                     assert(!ec1);
-                    resonse_session(cur_mov_,ec,SF_ALL);
+                    resonse_session(cur_mov_,SF_ALL);
                 }
                 else
                 {//cancel_delay
@@ -229,7 +172,7 @@ namespace ppbox
             {
                 if (cur_mov_->sessions_.size() > 0)
                 {//openning
-                    resonse_session(cur_mov_,ec,SF_NONE);
+                    resonse_session(cur_mov_,SF_NONE);
                 }
 
                 delete cur_mov_;
@@ -281,7 +224,7 @@ namespace ppbox
             else
             {//playing
                 //清除第0个play
-                resonse_player(cur_mov_->cur_session_,ec,PF_FRONT);
+                resonse_player(cur_mov_->cur_session_,PF_FRONT);
             }
 
             if (cur_mov_->cur_session_->playlist_.size() < 1)
@@ -311,7 +254,6 @@ namespace ppbox
         {//play_canceling
             assert(cur_mov_->sessions_.size() > 0);
             boost::system::error_code ec1;
-            close_format(ec1);
             close_playlink(ec1);
 
             clear_session(cur_mov_,cur_mov_->cur_session_);
@@ -388,8 +330,61 @@ namespace ppbox
                 cancel_open_playlink(ec1);
             }
             append_mov_ = new Movie();
-            append_mov_->play_link_= "zhang";
-            append_mov_->format_ = "kuang";
+        }
+
+        boost::system::error_code Dispatcher::async_play
+            (Movie* move 
+            ,Session* s
+            , boost::uint32_t beg
+            , boost::uint32_t end
+            ,ppbox::common::session_callback_respone const &resp)
+        {
+            boost::system::error_code ec;
+            if (move->openned_)
+            {
+                Player player(beg,end,resp);
+
+                if (move->append_session_ == NULL)
+                {
+                    move->cur_session_ = move->append_session_ = s;
+                    s->playlist_.push_back(player);
+                    async_play_playlink(s,boost::bind(&Dispatcher::play_callback,this,_1));
+                } 
+                else
+                {
+                    if (move->append_session_ == s )
+                    {
+                        if (s->playlist_.size() > 0)
+                        {
+                            resonse_player(s);
+                        }
+                    }
+                    else if (move->cur_session_ == s)
+                    {
+                        ec = error::wrong_status;
+                    }
+                    else
+                    {
+                        if(move->append_session_ != move->cur_session_)
+                        {
+                            resonse_player(move->append_session_);
+                        }
+                        move->append_session_ = s;
+                    }
+
+                }
+
+                if (!ec)
+                {
+                    s->playlist_.push_back(player);
+                }
+            }
+            else
+            {
+                ec = error::play_not_open_moive;
+            }
+            return ec;
+
         }
 
         void Dispatcher::async_play(boost::uint32_t session_id
@@ -397,66 +392,31 @@ namespace ppbox
             , boost::uint32_t end
             ,ppbox::common::session_callback_respone const &resp)
         {
-            boost::system::error_code ec = boost::asio::error::operation_aborted;
-            if (append_mov_ != cur_mov_ || !cur_mov_->openned_)
-            {
-                assert(0);
-                ec = error::wrong_status;
-                resp(ec);
-                return;
-            }
+            boost::system::error_code ec;
             
-            Movie::Iter iter = std::find_if(cur_mov_->sessions_.begin(),
-                cur_mov_->sessions_.end(),FindBySession(session_id));
-            if (iter == cur_mov_->sessions_.end())
+            Movie::Iter iter = std::find_if(append_mov_->sessions_.begin(),
+                append_mov_->sessions_.end(),FindBySession(session_id));
+            if (iter != append_mov_->sessions_.end())
             {
-                assert(0);
-                ec = error::not_find_session;
-                resp(ec);
-                return;
+                ec = async_play(append_mov_,*iter,beg,end,resp);
             }
-
-            Session * s = *iter;
-
-            Player player(beg,end,resp);
-
-            //openned next_session playling 
-            if (cur_mov_->append_session_ != NULL)
-            {//next_session
-                if (cur_mov_->cur_session_ == s)
-                {
-                    resp(ec);
-                    return;
-                }
-                else if (cur_mov_->append_session_ != s)
-                {
-                    //清除排队的
-                    resonse_player(cur_mov_->append_session_,ec);
-                    clear_session(cur_mov_,cur_mov_->append_session_);
-
-                    //s加入排队播放
-                    cur_mov_->append_session_ = s;
-                    s->playlist_.push_back(player);
-                }
-            
-            }
-            else if (cur_mov_->cur_session_ != NULL)
-            {//playling
-                if (cur_mov_->cur_session_ != s)
-                {
-                    resonse_player(cur_mov_->cur_session_,ec);
-                    cancel_open_playlink(ec);
-                    cur_mov_->append_session_ = s;
-                } 
-                s->playlist_.push_back(player);
+            else if ( cur_mov_->sessions_.end() != 
+                (iter = std::find_if(cur_mov_->sessions_.begin(),
+                cur_mov_->sessions_.end(),FindBySession(session_id)))
+                )
+            {
+                ec = error::play_cancel_moive;
             }
             else
-            {//openned
-                cur_mov_->cur_session_ = s;
-                s->playlist_.push_back(player);
-                async_play_playlink(s,boost::bind(&Dispatcher::play_callback,this,_1));
+            {
+                ec = error::not_find_session;
             }
             
+            if (ec)
+            {
+                assert(0);
+                resp(ec);
+            }
         }
 
         void Dispatcher::close(boost::uint32_t session_id,boost::system::error_code& ec)
@@ -517,7 +477,7 @@ namespace ppbox
             //openning openned  next_session playling
             if (!cur_mov_->openned_)
             {//openning
-                daemon_.io_svc().post(boost::bind(s->resp_,ec));
+                ios_.post(boost::bind(s->resp_,ec));
             }
             else
             {//openned  next_session playling
@@ -529,7 +489,7 @@ namespace ppbox
                     }
                     else if (cur_mov_->append_session_ == s)
                     {
-                        resonse_player(s,ec);
+                        resonse_player(s);
                         return;
                     }
                 }
@@ -537,7 +497,7 @@ namespace ppbox
                 {//playing
                     if (cur_mov_->cur_session_ == s)
                     { //转next_session
-                        resonse_player(s,ec);
+                        resonse_player(s);
                         cancel_play_playlink(ec);
 
                         Session* sTmp = new Session();
@@ -576,51 +536,33 @@ namespace ppbox
 
         boost::system::error_code Dispatcher::stop() 
         {
-            exit_ = true;
             kill();
-
-            dispatch_thread_->join();
-            delete dispatch_thread_;
-            dispatch_thread_ = NULL;
+            worker_.run();
             return boost::system::error_code();
         }
 
         boost::system::error_code Dispatcher::start()
         {
-            exit_ = false;
-            dispatch_thread_ = new boost::thread(
-                boost::bind(&Dispatcher::thread_dispatch, this));
+            worker_.run();
             return boost::system::error_code();
         }
 
-        void Dispatcher::post(PlayInterface *player)
+        void Dispatcher::async_wait(
+            boost::uint32_t wait_timer
+            , ppbox::common::session_callback_respone const &resp)
         {
-            msgq_->push(player);
+            timer_.expires_from_now(boost::posix_time::seconds(wait_timer));
+            timer_.async_wait(resp);
         }
 
-        void Dispatcher::thread_dispatch()
+        void Dispatcher::cancel_wait(boost::system::error_code& ec)
         {
-            PlayInterface* pMsgType = NULL;
-            while(!exit_) 
-            {
-                if( msgq_->timed_pop(pMsgType,boost::posix_time::milliseconds(10*1000)))
-                {
-                    thread_command(pMsgType);
-                    delete pMsgType;
-                    pMsgType = NULL;
-                }
-            }
+            timer_.cancel();
         }
 
-        boost::system::error_code Dispatcher::thread_command(PlayInterface* pMsgType)
+        void Dispatcher::resonse_player(Session* session,PlayerFlag pf )
         {
-            boost::system::error_code ec;
-            ec = pMsgType->doing();
-            return ec;
-        }
-
-        void Dispatcher::resonse_player(Session* session,boost::system::error_code const & ec,PlayerFlag pf )
-        {
+            boost::system::error_code ec = boost::asio::error::operation_aborted;
             switch (pf)
             {
             case PF_ALL:
@@ -645,7 +587,7 @@ namespace ppbox
 
         }
 
-        void Dispatcher::resonse_session(Movie* move,boost::system::error_code const & ec,SessionFlag sf)
+        void Dispatcher::resonse_session(Movie* move,SessionFlag sf)
         {
             /*
             SF_ALL,   //保存所有
@@ -653,6 +595,7 @@ namespace ppbox
             SF_FRONT_NO_RESP, //保留最前面的，都不回调
             SF_NONE   //不保存 
             */
+            boost::system::error_code ec = boost::asio::error::operation_aborted;
             Session* s = NULL;
             
             if (move->sessions_.size() < 1)
@@ -669,19 +612,20 @@ namespace ppbox
                         ++iter)
                     {
                         s = (*iter);
-                        daemon_.io_svc().post(boost::bind(s->resp_,ec));
+                        ios_.post(boost::bind(s->resp_,ec));
                     }
                 }
                 break;
             case SF_FRONT_NO_RESP:
                 {
                     Session* front = move->cur_session_;
-                    std::remove_if(move->sessions_.begin(),move->sessions_.end(),FindBySession(front->session_id_));
-
                     for (Movie::Iter iter = move->sessions_.begin(); iter != move->sessions_.end();++iter)
                     {
-                        s = (*iter);
-                        delete s;
+                        if (front != *iter)
+                        {
+                            s = (*iter);
+                            delete s;
+                        }
                     }
                     move->sessions_.clear();
                     move->sessions_.push_back(front);
@@ -694,7 +638,19 @@ namespace ppbox
                         ++iter)
                     {
                         s = (*iter);
-                        daemon_.io_svc().post(boost::bind(s->resp_,ec));
+                        ios_.post(boost::bind(s->resp_,ec));
+                        delete s;
+                    }
+                    move->sessions_.clear();
+                }
+                break;
+            case SF_NONE_NO_RESP:
+                {
+                    for (Movie::Iter iter = move->sessions_.begin();
+                        iter != move->sessions_.end();
+                        ++iter)
+                    {
+                        s = (*iter);
                         delete s;
                     }
                     move->sessions_.clear();

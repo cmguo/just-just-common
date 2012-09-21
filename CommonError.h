@@ -14,6 +14,8 @@ namespace ppbox
                 not_support,
                 not_find_session,
                 wrong_status,
+                play_cancel_moive,
+                play_not_open_moive,
             };
 
             namespace detail {
@@ -43,6 +45,10 @@ namespace ppbox
                                 return "common: not find session";
                             case wrong_status:
                                 return "common: wrong go to here";
+                            case play_cancel_moive:
+                                return "common: play cancel moive";
+                            case play_not_open_moive:
+                                return "common: play not open moive";
                             default:
                                 return "common other error";
                         }

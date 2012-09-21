@@ -8,7 +8,7 @@
 
 #include <util/stream/Sink.h>
 
-namespace framework { namespace thread { template <typename _Ty> class MessageQueue; } }
+#include <boost/asio/deadline_timer.hpp>
 
 namespace ppbox
 {
@@ -19,7 +19,7 @@ namespace ppbox
         public:
 
             Dispatcher(
-                util::daemon::Daemon & daemon);
+                boost::asio::io_service & ios);
 
             virtual ~Dispatcher();
 
@@ -43,9 +43,8 @@ namespace ppbox
             void close(boost::uint32_t session_id,boost::system::error_code& ec);
             
             void pause(boost::uint32_t session_id,boost::system::error_code& ec);
+
             void resume(boost::uint32_t session_id,boost::system::error_code& ec);
-
-
 
             boost::system::error_code kill() ;
 
@@ -60,16 +59,23 @@ namespace ppbox
                 ppbox::common::PlayInfo & info) = 0;
 
         protected:
-            void post(PlayInterface *player);
+            template <typename CompletionHandler>
+            void post(CompletionHandler& handler)
+            {
+                worker_.post(handler);
+            }
+
+            virtual void async_wait(
+                boost::uint32_t wait_timer
+                , ppbox::common::session_callback_respone const &resp) ;
+
+            virtual void cancel_wait(boost::system::error_code& ec);
 
        //派生类实现的
         protected:
             virtual void async_open_playlink(std::string const &playlink,ppbox::common::session_callback_respone const &resp) = 0;
             virtual void cancel_open_playlink(boost::system::error_code& ec) = 0;
             virtual void close_playlink(boost::system::error_code& ec) = 0;
-
-            virtual void open_format(std::string const &format,boost::system::error_code& ec) = 0;
-            virtual void close_format(boost::system::error_code& ec) = 0;
 
             virtual void pause_moive(boost::system::error_code& ec) = 0;
             virtual void resume_moive(boost::system::error_code& ec) = 0;
@@ -80,30 +86,13 @@ namespace ppbox
             virtual void async_buffering(Session* session,ppbox::common::session_callback_respone const &resp) = 0;
             virtual void cancel_buffering(boost::system::error_code& ec) = 0;
 
-
-            virtual void async_wait(
-                boost::uint32_t wait_timer
-                , ppbox::common::session_callback_respone const &resp) = 0;
-
-            virtual void cancel_wait(boost::system::error_code& ec) = 0;
-
         private:
-            void thread_dispatch();
-            boost::system::error_code thread_command(PlayInterface* pMsgType);
 
-            void async_open_zero(
-                framework::string::Url const & playlink
-                , boost::uint32_t const session_id
-                ,ppbox::common::session_callback_respone const &resp);
-
-            void async_open_one(
-                framework::string::Url const & playlink
-                , boost::uint32_t const session_id
-                ,ppbox::common::session_callback_respone const &resp);
-
-            void async_open_two(
-                framework::string::Url const & playlink
-                , boost::uint32_t const session_id
+            boost::system::error_code Dispatcher::async_play
+                (Movie* move 
+                ,Session* s
+                , boost::uint32_t beg
+                , boost::uint32_t end
                 ,ppbox::common::session_callback_respone const &resp);
 
             void open_callback_one(boost::system::error_code const & ec);
@@ -114,6 +103,10 @@ namespace ppbox
 
             void close_one(Session* s);
             void close_two(Session* s);
+
+            void cancel_session(Movie* move);
+            void cancel_play(Session* s);
+            
 
             //状态处理模块 
         private:
@@ -128,17 +121,18 @@ namespace ppbox
             {
                 SF_ALL,   //保存所有
                 SF_FRONT_NO_RESP,  //保存最前面的，都不回调
-                SF_NONE   //不保存 
+                SF_NONE,   //不保存 
+                SF_NONE_NO_RESP
             };
 
-            void resonse_session(Movie* move,boost::system::error_code const & ec,SessionFlag sf = SF_NONE);
+            void resonse_session(Movie* move,SessionFlag sf = SF_NONE);
 
             enum PlayerFlag
             {
                 PF_ALL,   //删除所有
                 PF_FRONT, //删除最前面的一个
             };
-            void resonse_player(Session* session,boost::system::error_code const & ec,PlayerFlag pf = PF_ALL);
+            void resonse_player(Session* session,PlayerFlag pf = PF_ALL);
             
             void clear_session(Movie* move,Session* session);
 
@@ -148,10 +142,10 @@ namespace ppbox
             Movie* append_mov_;
 
         private:
-            util::daemon::Daemon& daemon_;
+            boost::asio::io_service& ios_;
+            boost::asio::deadline_timer timer_;
+            boost::asio::io_service worker_;
             bool exit_;
-            boost::thread * dispatch_thread_;
-            framework::thread::MessageQueue<PlayInterface*> * msgq_;
             boost::uint32_t time_id_;
         };
 
