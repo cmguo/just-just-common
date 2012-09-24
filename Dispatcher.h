@@ -95,18 +95,20 @@ namespace ppbox
                 , boost::uint32_t end
                 ,ppbox::common::session_callback_respone const &resp);
 
+            void find_session(
+                const boost::uint32_t session_id,
+                Movie* &move,
+                Session* &s,
+                boost::system::error_code & ec);
+
             void open_callback_one(boost::system::error_code const & ec);
             void open_callback_two(boost::system::error_code const & ec);
 
             void play_callback_one(boost::system::error_code const & ec);
             void play_callback_two(boost::system::error_code const & ec);
 
-            void close_one(Session* s);
-            void close_two(Session* s);
-
+            void close(Movie* m,Session* s,boost::system::error_code const & ec);
             void cancel_session(Movie* move);
-            void cancel_play(Session* s);
-            
 
             //状态处理模块 
         private:
@@ -117,6 +119,9 @@ namespace ppbox
             void wait_callback(const boost::uint32_t time_id,boost::system::error_code const & ec);
 
 //工具函数
+            void response(Session* s,boost::system::error_code const & ec = boost::asio::error::operation_aborted);
+            void clear_session(Movie* move,Session* session);
+
             enum SessionFlag
             {
                 SF_ALL,   //保存所有
@@ -125,16 +130,15 @@ namespace ppbox
                 SF_NONE_NO_RESP
             };
 
-            void resonse_session(Movie* move,SessionFlag sf = SF_NONE);
+            void resonse_session(Movie* move,SessionFlag sf = SF_NONE,boost::system::error_code const & ec = boost::asio::error::operation_aborted);
 
             enum PlayerFlag
             {
                 PF_ALL,   //删除所有
                 PF_FRONT, //删除最前面的一个
             };
+
             void resonse_player(Session* session,PlayerFlag pf = PF_ALL);
-            
-            void clear_session(Movie* move,Session* session);
 
 
         protected:

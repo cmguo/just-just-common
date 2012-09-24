@@ -41,7 +41,6 @@ namespace ppbox
             if (NULL == append_mov_)
             {
                 cur_mov_ = new Movie(play_link,playlink,s);
-
                 append_mov_ = cur_mov_;
                 async_open_playlink(play_link,boost::bind(&Dispatcher::open_callback,this,_1));
             }
@@ -49,18 +48,25 @@ namespace ppbox
             {
                 if (append_mov_->play_link_ == play_link)
                 {
-                    append_mov_->sessions_.push_back(s);
                     if (append_mov_->openned_)
-                    {
+                    {//buffering
                         ios_.post(boost::bind(resp,ec));
+                        if (append_mov_->sessions_.size() < 1)
+                        {
+                            ++time_id_;
+                            cancel_wait(ec);
+                            cancel_buffering(ec);
+                        }
                     }
+                    append_mov_->sessions_.push_back(s);
                 }
                 else
                 {
                     if (append_mov_ == cur_mov_)
                     {
-                        if (false)//openned
-                        {//如果是已经打开，且都已回调
+                        if (append_mov_->openned_
+                            && append_mov_->append_session_ == NULL)
+                        {
                             resonse_session(cur_mov_,SF_NONE_NO_RESP);
                             
                             close_playlink(ec);
@@ -81,9 +87,8 @@ namespace ppbox
                     else
                     {
                         //替换append_
-                        resonse_session(cur_mov_,SF_NONE);
+                        resonse_session(append_mov_,SF_NONE);
                         delete append_mov_;
-                        append_mov_ = NULL;
                         append_mov_ = new Movie(play_link,playlink,s);
                     }
 
@@ -91,15 +96,11 @@ namespace ppbox
                 }
             }
         }
-        void Dispatcher::cancel_play(Session* s)
-        {
-            
-        }
 
         void Dispatcher::cancel_session(Movie* move)
         {
             boost::system::error_code ec;
-            //判断  playing buffering openning
+            //判断  playing buffering openning cancel_delay
             if (!move->openned_)
             {
                 if (move->sessions_.size() > 0)
@@ -137,7 +138,7 @@ namespace ppbox
 
 
         void Dispatcher::open_callback(boost::system::error_code const & ec)
-        {//canceling openning  cancel_delay 
+        {
             assert(!cur_mov_->openned_);
             if (cur_mov_ == append_mov_)
             {
@@ -157,8 +158,7 @@ namespace ppbox
                 if (cur_mov_->sessions_.size() > 0)
                 {//openning
                     boost::system::error_code ec1;
-                    assert(!ec1);
-                    resonse_session(cur_mov_,SF_ALL);
+                    resonse_session(cur_mov_,SF_ALL,ec1);
                 }
                 else
                 {//cancel_delay
@@ -215,27 +215,27 @@ namespace ppbox
 
         void Dispatcher::play_callback_one(boost::system::error_code const & ec)
         {//playling  next_session
-            if (NULL != cur_mov_->append_session_)
+            if (NULL != append_mov_->append_session_)
             {//next_session
-                clear_session(cur_mov_,cur_mov_->cur_session_);
-                cur_mov_->cur_session_ = cur_mov_->append_session_;
-                cur_mov_->append_session_ = NULL;
+                clear_session(append_mov_,append_mov_->cur_session_);
+                append_mov_->cur_session_ = append_mov_->append_session_;
+                append_mov_->append_session_ = NULL;
             }
             else
             {//playing
                 //清除第0个play
-                resonse_player(cur_mov_->cur_session_,PF_FRONT);
+                resonse_player(append_mov_->cur_session_,PF_FRONT);
             }
 
-            if (cur_mov_->cur_session_->playlist_.size() < 1)
+            if (append_mov_->cur_session_->playlist_.size() < 1)
             {
-                clear_session(cur_mov_,cur_mov_->cur_session_);
-                cur_mov_->cur_session_ = NULL;
+                clear_session(append_mov_,append_mov_->cur_session_);
+                append_mov_->append_session_ = append_mov_->cur_session_ = NULL;
 
-                if (cur_mov_->sessions_.size() < 1)
+                if (append_mov_->sessions_.size() < 1)
                 {//转close_delay
                     Session* s = new Session();
-                    cur_mov_->sessions_.push_back(s);
+                    append_mov_->sessions_.push_back(s);
                     async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
                     async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
                 }
@@ -246,7 +246,7 @@ namespace ppbox
             }
             else
             {
-                async_play_playlink(cur_mov_->cur_session_,boost::bind(&Dispatcher::play_callback,this,_1));
+                async_play_playlink(append_mov_->cur_session_,boost::bind(&Dispatcher::play_callback,this,_1));
             }
         }
 
@@ -277,25 +277,18 @@ namespace ppbox
             util::stream::Sink* sink,
             boost::system::error_code& ec)
         {
-            assert(NULL != cur_mov_);
-            ec.clear();
-            Movie::Iter iter = std::find_if(cur_mov_->sessions_.begin(),
-                cur_mov_->sessions_.end(),FindBySession(session_id));
-            if (iter == cur_mov_->sessions_.end())
+            Movie* m = NULL;
+            Session* s = NULL;
+            find_session(session_id,m,s,ec);
+            if (!ec)
             {
-                assert(0);
-                ec = error::not_find_session;
-            }
-            else
-            {
-                Session* s = *iter;
-                if(s == cur_mov_->cur_session_)
+                if (m == cur_mov_ && s != m->cur_session_)
                 {
-                    ec == error::wrong_status;
+                     s->sinks_.add(control,sink);
                 }
                 else
                 {
-                    s->sinks_.add(control,sink);
+                    ec == error::wrong_status;
                 }
             }
         }
@@ -393,25 +386,24 @@ namespace ppbox
             ,ppbox::common::session_callback_respone const &resp)
         {
             boost::system::error_code ec;
+
+            Movie* m = NULL;
+            Session* s = NULL;
+            find_session(session_id,m,s,ec);
             
-            Movie::Iter iter = std::find_if(append_mov_->sessions_.begin(),
-                append_mov_->sessions_.end(),FindBySession(session_id));
-            if (iter != append_mov_->sessions_.end())
+            if (!ec)
             {
-                ec = async_play(append_mov_,*iter,beg,end,resp);
+                if (m == cur_mov_)
+                {
+                    ec = async_play(m,s,beg,end,resp);
+                }
+                else
+                {
+                    ec = error::canceled_moive;
+                }
+
             }
-            else if ( cur_mov_->sessions_.end() != 
-                (iter = std::find_if(cur_mov_->sessions_.begin(),
-                cur_mov_->sessions_.end(),FindBySession(session_id)))
-                )
-            {
-                ec = error::play_cancel_moive;
-            }
-            else
-            {
-                ec = error::not_find_session;
-            }
-            
+
             if (ec)
             {
                 assert(0);
@@ -421,33 +413,94 @@ namespace ppbox
 
         void Dispatcher::close(boost::uint32_t session_id,boost::system::error_code& ec)
         {
-            Movie::Iter iter = std::find_if(append_mov_->sessions_.begin(),
-                append_mov_->sessions_.end(),FindBySession(session_id));
-            if (iter == append_mov_->sessions_.end())
+            Movie* m = NULL;
+            Session* s = NULL;
+            find_session(session_id,m,s,ec);
+
+            if (!ec)
             {
-                ec = boost::asio::error::operation_aborted;
+                if (m == append_mov_)
+                {
+                    close(m,s,ec);
+                }
+                else
+                {
+                    ec = error::canceled_moive;
+                }
+            }
+
+        }
+
+        void Dispatcher::close(Movie* m,Session* s,boost::system::error_code const & ec)
+        { //openning openned  next_session playling
+            if (append_mov_ == cur_mov_)
+            {
+                if (s->playlist_.size() > 0)
+                {
+                    resonse_player(s);
+                }
+
+                if (!m->openned_)
+                {
+                    response(s);
+                }
+                
+                clear_session(m,s);
+                Session* sTemp = new Session();
+
+                if (m->cur_session_ == s) //1 2 | 1 1
+                {
+                    m->cur_session_ = m->append_session_ = sTemp;
+                } 
+                else if (m->append_session_ == s) //two session
+                {
+                    m->append_session_ = sTemp;
+                }
+                else 
+                {
+                    if (m->sessions_.size() < 1)
+                    {
+                        async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
+                        if (m->openned_)
+                        {
+                            async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
+                        }
+                        else
+                        {//cancel_delay
+                            delete sTemp;
+                            return;
+                        }
+                    }
+                    else
+                    {//关闭一个没播放的session
+                        delete sTemp;
+                        return;
+                    }
+                }
+                m->sessions_.push_back(sTemp);
             }
             else
             {
-
-                if (append_mov_ == cur_mov_)
+                response(s);
+                clear_session(m,s);
+                if (m->sessions_.size() < 1)
                 {
-                    close_one(*iter);
-                } 
-                else
-                {
-                    close_two(*iter);
+                    Session* sTemp = new Session();
+                    m->sessions_.push_back(sTemp);
                 }
             }
         }
 
+
         void Dispatcher::pause(boost::uint32_t session_id,boost::system::error_code& ec)
         {
+
             if(NULL == cur_mov_ 
                 || cur_mov_->sessions_.size() < 1 
                 || cur_mov_->sessions_[0]->playlist_.size() < 1
                 || cur_mov_->sessions_[0]->session_id_ != session_id)
             {
+                assert(0);
                 ec = boost::asio::error::operation_aborted;
             }
             else
@@ -471,66 +524,14 @@ namespace ppbox
             }
         }
 
-        void Dispatcher::close_one(Session* s)
-        {
-            boost::system::error_code ec = boost::asio::error::operation_aborted;
-            //openning openned  next_session playling
-            if (!cur_mov_->openned_)
-            {//openning
-                ios_.post(boost::bind(s->resp_,ec));
-            }
-            else
-            {//openned  next_session playling
-                if (cur_mov_->append_session_ != NULL)
-                {//next_session
-                    if (cur_mov_->cur_session_ == s)
-                    {
-                        assert(0);
-                    }
-                    else if (cur_mov_->append_session_ == s)
-                    {
-                        resonse_player(s);
-                        return;
-                    }
-                }
-                else if (cur_mov_->cur_session_ != NULL)
-                {//playing
-                    if (cur_mov_->cur_session_ == s)
-                    { //转next_session
-                        resonse_player(s);
-                        cancel_play_playlink(ec);
-
-                        Session* sTmp = new Session();
-                        cur_mov_->append_session_ = sTmp;
-                        return;
-                    }
-                }
-                else
-                {//openned
-                    
-                }
-            }
-            clear_session(cur_mov_,s);
-            if (cur_mov_->sessions_.size() < 1)
-            {//转cancel_delay 或 buffering
-                if (cur_mov_->openned_)
-                {//转buffering
-                    Session* sTemp = new Session();
-                    cur_mov_->sessions_.push_back(sTemp);
-                    async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
-                }
-                async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
-
-            }
-        }
-
-        void Dispatcher::close_two(Session* s)
-        {
-            clear_session(append_mov_,s);
-        }
-
         boost::system::error_code Dispatcher::kill() 
         {
+            boost::system::error_code ec;
+            if (append_mov_ && append_mov_->append_session_)
+            {
+                close(append_mov_->append_session_->session_id_,ec);
+            }
+            
             return boost::system::error_code();
         }
 
@@ -560,6 +561,41 @@ namespace ppbox
             timer_.cancel();
         }
 
+
+        void Dispatcher::find_session(
+            const boost::uint32_t session_id,
+            Movie* &move,
+            Session* &s,
+            boost::system::error_code & ec)
+        {
+            if (NULL == append_mov_)
+            {
+                assert(0);
+                ec = error::wrong_status;
+                return;
+            }
+
+            Movie::Iter iter = std::find_if(append_mov_->sessions_.begin(),
+                append_mov_->sessions_.end(),FindBySession(session_id));
+            if (iter != append_mov_->sessions_.end())
+            {
+                move = append_mov_;
+                s = *iter;
+            }
+            else if (append_mov_ != cur_mov_ && cur_mov_->sessions_.end() != 
+                (iter = std::find_if(cur_mov_->sessions_.begin(),
+                cur_mov_->sessions_.end(),FindBySession(session_id)))
+                )
+            {
+                move = cur_mov_;
+                s = *iter;
+            }
+            else
+            {
+                ec = error::not_find_session;
+            }
+        }
+
         void Dispatcher::resonse_player(Session* session,PlayerFlag pf )
         {
             boost::system::error_code ec = boost::asio::error::operation_aborted;
@@ -571,7 +607,7 @@ namespace ppbox
                         iter != session->playlist_.begin();
                         ++iter)
                     {
-                        (*iter).resp_(ec);
+                        ios_.post(boost::bind((*iter).resp_,ec));
                     }
                     session->playlist_.clear();
                 }
@@ -579,15 +615,20 @@ namespace ppbox
             case PF_FRONT:
                 {
                     Session::Iter iter = session->playlist_.begin();
+                    ios_.post(boost::bind((*iter).resp_,ec));
                     session->playlist_.erase(iter);
-                    (*iter).resp_(ec);
                 }
                 break;
             }
 
         }
 
-        void Dispatcher::resonse_session(Movie* move,SessionFlag sf)
+        void Dispatcher::response(Session* s,boost::system::error_code const & ec)
+        {
+            ios_.post(boost::bind(s->resp_,ec));
+        }
+
+        void Dispatcher::resonse_session(Movie* move,SessionFlag sf,boost::system::error_code const & ec)
         {
             /*
             SF_ALL,   //保存所有
@@ -595,7 +636,6 @@ namespace ppbox
             SF_FRONT_NO_RESP, //保留最前面的，都不回调
             SF_NONE   //不保存 
             */
-            boost::system::error_code ec = boost::asio::error::operation_aborted;
             Session* s = NULL;
             
             if (move->sessions_.size() < 1)
