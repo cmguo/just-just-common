@@ -148,6 +148,9 @@ namespace ppbox
                  Session *s)
                  : play_link_(play_link)
                  ,params_(params)
+                 , cur_session_(NULL)
+                 , append_session_(NULL)
+                 , openned_(false)
              {
                 sessions_.push_back(s);
              }

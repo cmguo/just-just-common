@@ -345,6 +345,7 @@ namespace ppbox
                     move->cur_session_ = move->append_session_ = s;
                     s->playlist_.push_back(player);
                     async_play_playlink(s,boost::bind(&Dispatcher::play_callback,this,_1));
+                    return ec;
                 } 
                 else
                 {
