@@ -10,6 +10,8 @@
 
 #include <boost/asio/deadline_timer.hpp>
 
+namespace boost { class thread; }
+
 namespace ppbox
 {
     namespace common
@@ -62,7 +64,7 @@ namespace ppbox
             template <typename CompletionHandler>
             void post(CompletionHandler& handler)
             {
-                worker_.post(handler);
+                work_io_svc_.post(handler);
             }
 
             virtual void async_wait(
@@ -140,7 +142,6 @@ namespace ppbox
 
             void resonse_player(Session* session,PlayerFlag pf = PF_ALL);
 
-
         protected:
             Movie* cur_mov_;
             Movie* append_mov_;
@@ -148,8 +149,11 @@ namespace ppbox
         private:
             boost::asio::io_service& ios_;
             boost::asio::deadline_timer timer_;
-            boost::asio::io_service worker_;
-            bool exit_;
+
+            boost::asio::io_service work_io_svc_;
+            boost::asio::io_service::work * work_;
+            boost::thread * dispatch_thread_; 
+
             boost::uint32_t time_id_;
         };
 

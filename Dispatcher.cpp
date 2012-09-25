@@ -4,6 +4,7 @@
 #include "ppbox/common/CommonError.h"
 
 #include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
 
 namespace ppbox
 {
@@ -15,6 +16,8 @@ namespace ppbox
             , timer_(ios_)
             ,cur_mov_(NULL)
             ,append_mov_(NULL)
+            ,work_(NULL)
+            , dispatch_thread_(NULL)
             , time_id_(0)
         {
         }
@@ -538,13 +541,26 @@ namespace ppbox
         boost::system::error_code Dispatcher::stop() 
         {
             kill();
-            worker_.run();
+
+            delete work_;
+            work_ = NULL;
+
+            dispatch_thread_->join();
+            work_io_svc_.reset();
+
+            delete dispatch_thread_;
+            dispatch_thread_ = NULL;
+
             return boost::system::error_code();
         }
 
+
         boost::system::error_code Dispatcher::start()
         {
-            worker_.run();
+            work_ = new boost::asio::io_service::work(work_io_svc_);
+            dispatch_thread_ = new boost::thread(
+               boost::bind(&boost::asio::io_service::run, &work_io_svc_));
+
             return boost::system::error_code();
         }
 
