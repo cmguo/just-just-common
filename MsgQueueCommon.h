@@ -107,16 +107,18 @@ namespace ppbox
 
         struct Session
         {
-            Session()
+            Session(boost::asio::io_service & ios)
                 : session_id_(-1)
+                , sinks_(ios)
             {
             }
 
-            Session(
-                boost::uint32_t session_id
+            Session(boost::asio::io_service & ios
+                ,boost::uint32_t session_id
                 , std::string format
                 , ppbox::common::session_callback_respone resp)
                 :session_id_(session_id)
+                , sinks_(ios)
                 , format_(format)
                 ,resp_(resp)
             {

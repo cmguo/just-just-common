@@ -16,7 +16,7 @@ namespace ppbox
         class Sinks
         {
         public:
-            Sinks();
+            Sinks(boost::asio::io_service & ios);
             ~Sinks();
 
             void add(size_t control, util::stream::Sink* sink);

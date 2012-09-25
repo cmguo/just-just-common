@@ -37,7 +37,7 @@ namespace ppbox
             std::string play_link = url_tool.playlink();
             std::string format = url_tool.format();
             
-            Session* s = new Session(session_id,format,resp);
+            Session* s = new Session(ios_,session_id,format,resp);
             if (NULL == append_mov_)
             {
                 cur_mov_ = new Movie(play_link,playlink,s);
@@ -162,7 +162,7 @@ namespace ppbox
                 }
                 else
                 {//cancel_delay
-                    Session* s = new Session();
+                    Session* s = new Session(ios_);
                     cur_mov_->sessions_.push_back(s);
                     async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
                     async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
@@ -234,7 +234,7 @@ namespace ppbox
 
                 if (append_mov_->sessions_.size() < 1)
                 {//תclose_delay
-                    Session* s = new Session();
+                    Session* s = new Session(ios_);
                     append_mov_->sessions_.push_back(s);
                     async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
                     async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
@@ -446,7 +446,7 @@ namespace ppbox
                 }
                 
                 clear_session(m,s);
-                Session* sTemp = new Session();
+                Session* sTemp = new Session(ios_);
 
                 if (m->cur_session_ == s) //1 2 | 1 1
                 {
@@ -485,7 +485,7 @@ namespace ppbox
                 clear_session(m,s);
                 if (m->sessions_.size() < 1)
                 {
-                    Session* sTemp = new Session();
+                    Session* sTemp = new Session(ios_);
                     m->sessions_.push_back(sTemp);
                 }
             }
