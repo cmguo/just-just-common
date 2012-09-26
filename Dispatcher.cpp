@@ -299,6 +299,9 @@ namespace ppbox
         {
             if (append_mov_ == cur_mov_)
             {
+                boost::system::error_code ec1;
+                ++time_id_;
+                cancel_wait(ec1);
                 append_mov_ = new Movie();
             }
             play_callback_two(ec);
@@ -568,7 +571,7 @@ namespace ppbox
             boost::uint32_t wait_timer
             , ppbox::common::session_callback_respone const &resp)
         {
-            timer_.expires_from_now(boost::posix_time::seconds(wait_timer));
+            timer_.expires_from_now(boost::posix_time::milliseconds(wait_timer));
             timer_.async_wait(resp);
         }
 
