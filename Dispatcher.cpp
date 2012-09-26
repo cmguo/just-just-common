@@ -6,10 +6,18 @@
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
 
+#include <framework/logger/Logger.h>
+#include <framework/logger/StreamRecord.h>
+using namespace framework::logger;
+
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("Dispatcher", 0);
+
 namespace ppbox
 {
     namespace common
     {  
+#define LOG_PATHER(p) LOG_INFO("["<<p<<"] cur:"<<cur_mov_<<" append:"<<append_mov_);
+
         Dispatcher::Dispatcher(
             boost::asio::io_service& ios)
             :ios_(ios)
@@ -32,6 +40,7 @@ namespace ppbox
             , boost::uint32_t& session_id
             ,ppbox::common::session_callback_respone const &resp)
         {
+            LOG_PATHER("async_open");
             static size_t g_session_id = rand();
             session_id = g_session_id++;
 
@@ -102,6 +111,7 @@ namespace ppbox
 
         void Dispatcher::cancel_session(Movie* move)
         {
+            LOG_PATHER("cancel_session");
             boost::system::error_code ec;
             //еп╤о buffering openning cancel_delay playing next_play
             if (!move->openned_)
@@ -140,6 +150,7 @@ namespace ppbox
 
         void Dispatcher::open_callback(boost::system::error_code const & ec)
         {
+            LOG_PATHER("open_callback");
             assert(!cur_mov_->openned_);
             if (cur_mov_ == append_mov_)
             {
@@ -204,6 +215,7 @@ namespace ppbox
 
         void Dispatcher::play_callback(boost::system::error_code const & ec)
         { // playling  next_session  play_canceling
+            LOG_PATHER("play_callback");
             if (cur_mov_ == append_mov_)
             {
                 play_callback_one(ec);
@@ -278,6 +290,7 @@ namespace ppbox
             util::stream::Sink* sink,
             boost::system::error_code& ec)
         {
+            LOG_PATHER("setup");
             Movie* m = NULL;
             Session* s = NULL;
             find_session(session_id,m,s,ec);
@@ -297,6 +310,7 @@ namespace ppbox
 
         void Dispatcher::buffering_callback(boost::system::error_code const & ec)
         {
+            LOG_PATHER("buffering_callback");
             if (append_mov_ == cur_mov_)
             {
                 boost::system::error_code ec1;
@@ -309,6 +323,7 @@ namespace ppbox
 
         void Dispatcher::wait_callback(const boost::uint32_t time_id,boost::system::error_code const & ec)
         {
+            LOG_PATHER("wait_callback");
             if (time_id != time_id_)
             {
                 return;
@@ -394,6 +409,7 @@ namespace ppbox
             , boost::uint32_t end
             ,ppbox::common::session_callback_respone const &resp)
         {
+            LOG_PATHER("async_play");
             boost::system::error_code ec;
 
             Movie* m = NULL;
@@ -422,6 +438,7 @@ namespace ppbox
 
         void Dispatcher::close(boost::uint32_t session_id,boost::system::error_code& ec)
         {
+            LOG_PATHER("close");
             Movie* m = NULL;
             Session* s = NULL;
             find_session(session_id,m,s,ec);
@@ -501,6 +518,7 @@ namespace ppbox
         void Dispatcher::pause(boost::uint32_t session_id,boost::system::error_code& ec)
         {
 
+            LOG_PATHER("pause");
             if(NULL == cur_mov_ 
                 || cur_mov_->sessions_.size() < 1 
                 || cur_mov_->sessions_[0]->playlist_.size() < 1
@@ -517,6 +535,7 @@ namespace ppbox
 
         void Dispatcher::resume(boost::uint32_t session_id,boost::system::error_code& ec)
         {
+            LOG_PATHER("resume");
             if(NULL == cur_mov_ 
                 || cur_mov_->sessions_.size() < 1 
                 || cur_mov_->sessions_[0]->playlist_.size() < 1
@@ -532,6 +551,7 @@ namespace ppbox
 
         boost::system::error_code Dispatcher::kill() 
         {
+            LOG_PATHER("kill");
             boost::system::error_code ec;
             if (append_mov_ && append_mov_->append_session_)
             {
@@ -543,6 +563,7 @@ namespace ppbox
 
         boost::system::error_code Dispatcher::stop() 
         {
+            LOG_PATHER("stop");
             kill();
 
             delete work_;
@@ -560,6 +581,7 @@ namespace ppbox
 
         boost::system::error_code Dispatcher::start()
         {
+            LOG_PATHER("start");
             work_ = new boost::asio::io_service::work(work_io_svc_);
             dispatch_thread_ = new boost::thread(
                boost::bind(&boost::asio::io_service::run, &work_io_svc_));
@@ -571,12 +593,14 @@ namespace ppbox
             boost::uint32_t wait_timer
             , ppbox::common::session_callback_respone const &resp)
         {
+            LOG_PATHER("async_wait");
             timer_.expires_from_now(boost::posix_time::milliseconds(wait_timer));
             timer_.async_wait(resp);
         }
 
         void Dispatcher::cancel_wait(boost::system::error_code& ec)
         {
+            LOG_PATHER("cancel_wait");
             timer_.cancel();
         }
 
@@ -589,7 +613,6 @@ namespace ppbox
         {
             if (NULL == append_mov_)
             {
-                assert(0);
                 ec = error::wrong_status;
                 return;
             }
