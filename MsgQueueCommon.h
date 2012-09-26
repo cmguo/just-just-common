@@ -45,8 +45,9 @@ namespace ppbox
         class PlayInterface
         {
         public:
-            PlayInterface()
-                : exit_(true)
+            PlayInterface(boost::asio::io_service & ios)
+                : ios_(ios)
+                , exit_(true)
                 , playing_(false)
             {
 
@@ -76,10 +77,11 @@ namespace ppbox
             {
                 return (!exit_);
             }
-
+    
         protected:
             bool exit_;
             bool playing_;
+            boost::asio::io_service & ios_;
         };
 
         struct Player

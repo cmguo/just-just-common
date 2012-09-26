@@ -103,42 +103,40 @@ namespace ppbox
         void Dispatcher::cancel_session(Movie* move)
         {
             boost::system::error_code ec;
-            //判断  playing buffering openning cancel_delay
+            //判断 buffering openning cancel_delay playing next_play
             if (!move->openned_)
-            {
+            {//openning
                 if (move->sessions_.size() > 0)
                 {
                     resonse_session(move,SF_NONE);
                 }
-
+                else
+                {
+                    ++time_id_;
+                    cancel_wait(ec);
+                }
                 cancel_open_playlink(ec);
             }
-            else if (move->append_session_)
+            else 
             {
+                if(move->sessions_.size() < 1)
+                {
+                    ++time_id_;
+                    cancel_wait(ec);
+                    cancel_buffering(ec);
+                }
+                if(move->cur_session_->playlist_.size() > 0)
+                {
+                    cancel_play_playlink(ec);
+                }
+                
                 if (move->append_session_->playlist_.size() > 0)
                 {
                     resonse_player(move->append_session_);
                 }
                 resonse_session(move,SF_FRONT_NO_RESP);
             }
-            else if (move->cur_session_)
-            {
-                if (move->cur_session_->playlist_.size() > 0)
-                {
-                    resonse_player(move->cur_session_);
-                }
-                resonse_session(move,SF_NONE_NO_RESP);
-                cancel_play_playlink(ec);
-            }
-            else
-            {
-                ++time_id_;
-                cancel_wait(ec);
-
-                cancel_buffering(ec);
-            }
         }
-
 
         void Dispatcher::open_callback(boost::system::error_code const & ec)
         {
@@ -157,16 +155,16 @@ namespace ppbox
         {//  openning  cancel_delay 
             if (!ec)
             {
-                cur_mov_->openned_ = true;
+                append_mov_->openned_ = true;
                 if (cur_mov_->sessions_.size() > 0)
                 {//openning
                     boost::system::error_code ec1;
-                    resonse_session(cur_mov_,SF_ALL,ec1);
+                    resonse_session(append_mov_,SF_ALL,ec1);
                 }
                 else
                 {//cancel_delay
                     Session* s = new Session(ios_);
-                    cur_mov_->sessions_.push_back(s);
+                    append_mov_->cur_session_ = append_mov_->append_session_ = s;
                     async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
                     async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
                 }
@@ -218,7 +216,7 @@ namespace ppbox
 
         void Dispatcher::play_callback_one(boost::system::error_code const & ec)
         {//playling  next_session
-            if (NULL != append_mov_->append_session_)
+            if (append_mov_->cur_session_ != append_mov_->append_session_)
             {//next_session
                 clear_session(append_mov_,append_mov_->cur_session_);
                 append_mov_->cur_session_ = append_mov_->append_session_;
@@ -238,7 +236,7 @@ namespace ppbox
                 if (append_mov_->sessions_.size() < 1)
                 {//转close_delay
                     Session* s = new Session(ios_);
-                    append_mov_->sessions_.push_back(s);
+                    append_mov_->append_session_ = append_mov_->cur_session_ = s;
                     async_wait(10000,boost::bind(&Dispatcher::wait_callback,this,time_id_,_1));
                     async_buffering(s,boost::bind(&Dispatcher::buffering_callback,this,_1));
                 }
@@ -255,11 +253,11 @@ namespace ppbox
 
         void Dispatcher::play_callback_two(boost::system::error_code const & ec)
         {//play_canceling
-            assert(cur_mov_->sessions_.size() > 0);
+            //assert(cur_mov_->sessions_.size() > 0);
             boost::system::error_code ec1;
             close_playlink(ec1);
 
-            clear_session(cur_mov_,cur_mov_->cur_session_);
+             clear_session(cur_mov_,cur_mov_->cur_session_);
             assert(cur_mov_->sessions_.size() < 1);
             delete cur_mov_;
             cur_mov_ = append_mov_;
@@ -299,7 +297,10 @@ namespace ppbox
 
         void Dispatcher::buffering_callback(boost::system::error_code const & ec)
         {
-            assert(append_mov_ != cur_mov_);
+            if (append_mov_ == cur_mov_)
+            {
+                append_mov_ = new Movie();
+            }
             play_callback_two(ec);
         }
 
@@ -317,6 +318,8 @@ namespace ppbox
             //cancel_delay buffering
             assert(cur_mov_ == append_mov_);
 
+            append_mov_ = new Movie();
+
             if (cur_mov_->openned_)
             {//buffering
                 cancel_buffering(ec1);
@@ -325,7 +328,6 @@ namespace ppbox
             {//cancel_delay
                 cancel_open_playlink(ec1);
             }
-            append_mov_ = new Movie();
         }
 
         boost::system::error_code Dispatcher::async_play
@@ -472,16 +474,13 @@ namespace ppbox
                         else
                         {//cancel_delay
                             delete sTemp;
-                            return;
                         }
                     }
                     else
                     {//关闭一个没播放的session
                         delete sTemp;
-                        return;
                     }
                 }
-                m->sessions_.push_back(sTemp);
             }
             else
             {
@@ -490,7 +489,7 @@ namespace ppbox
                 if (m->sessions_.size() < 1)
                 {
                     Session* sTemp = new Session(ios_);
-                    m->sessions_.push_back(sTemp);
+                    m->cur_session_ = m->append_session_ = s;
                 }
             }
         }
