@@ -150,7 +150,7 @@ namespace ppbox
 
         void Dispatcher::open_callback(boost::system::error_code const & ec)
         {
-            LOG_PATHER("open_callback");
+            LOG_PATHER("open_callback ec:"<<ec.message());
             assert(!cur_mov_->openned_);
             if (cur_mov_ == append_mov_)
             {
@@ -215,7 +215,7 @@ namespace ppbox
 
         void Dispatcher::play_callback(boost::system::error_code const & ec)
         { // playling  next_session  play_canceling
-            LOG_PATHER("play_callback");
+            LOG_PATHER("play_callback ec:"<<ec.message());
             if (cur_mov_ == append_mov_)
             {
                 play_callback_one(ec);
@@ -310,7 +310,7 @@ namespace ppbox
 
         void Dispatcher::buffering_callback(boost::system::error_code const & ec)
         {
-            LOG_PATHER("buffering_callback");
+            LOG_PATHER("buffering_callback ec:"<<ec.message());
             if (append_mov_ == cur_mov_)
             {
                 boost::system::error_code ec1;
@@ -323,7 +323,7 @@ namespace ppbox
 
         void Dispatcher::wait_callback(const boost::uint32_t time_id,boost::system::error_code const & ec)
         {
-            LOG_PATHER("wait_callback");
+            LOG_PATHER("wait_callback ec:"<<ec.message());
             if (time_id != time_id_)
             {
                 return;
