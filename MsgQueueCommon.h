@@ -25,6 +25,13 @@ namespace ppbox
 
         struct MediaInfo
         {
+            MediaInfo()
+                : duration(0)
+                , filesize(0)
+                , attachment(NULL)
+            {
+
+            }
             boost::uint32_t duration;
             boost::uint32_t filesize;
             void * attachment;
@@ -32,6 +39,16 @@ namespace ppbox
 
         struct PlayInfo
         {
+            PlayInfo()
+                : head_size(0)
+                , tail_size(0)
+                , body_size(0)
+                , cur_offset(0)
+                , speed(0)
+                , area(0)
+                , percent(0)
+                , headpercent(0)
+            {}
             boost::uint32_t head_size; 
             boost::uint32_t tail_size; 
             boost::uint64_t body_size; 
