@@ -1,6 +1,9 @@
-//Create.h
+// Create.h
+
 #ifndef PPBOX_COMMON_CREATE_H_
 #define PPBOX_COMMON_CREATE_H_
+
+#include <boost/function.hpp>
 
 namespace ppbox
 {
