@@ -13,7 +13,7 @@ using namespace framework::process;
 using namespace framework::configure;
 
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("CommonModule", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.CommonModule", Debug)
 
 namespace ppbox
 {

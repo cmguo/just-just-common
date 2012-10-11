@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("Ppbox", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Version", framework::logger::Debug)
 
 #undef linux
 

@@ -7,7 +7,7 @@
 #include <framework/logger/StreamRecord.h>
 using namespace framework::logger;
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("PortManager", 0);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.PortManager", Debug);
 
 #define PORTMANAGE_OBJECT_ID 107
 

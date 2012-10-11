@@ -28,7 +28,7 @@ using namespace boost::system;
 #  define snprintf _snprintf
 #endif
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DebugProxy", 0);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.DebugProxy", Debug);
 
 namespace ppbox
 {

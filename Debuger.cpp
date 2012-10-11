@@ -25,7 +25,7 @@ using namespace boost::system;
 
 #define DEBUG_OBJECT_ID 102
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("Debuger", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Debuger", Debug)
 
 namespace boost
 {
