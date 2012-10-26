@@ -16,6 +16,11 @@ namespace ppbox
         {
             typedef Class * result_type;//函数对象，需要对外定义函数返回类型
 
+            Class * operator()()
+            {
+                return new Class;
+            }
+
             template <
                 typename Arg1
             >
@@ -35,9 +40,15 @@ namespace ppbox
                 return new Class(arg1, arg2);
             }
 
-            Class * operator()()
+            template <
+                typename Arg1,
+                typename Arg2,
+                typename Arg3
+            >
+            Class * operator()(
+                Arg1 & arg1, Arg2 & arg2, Arg3 & arg3)
             {
-                return new Class;
+                return new Class(arg1, arg2, arg3);
             }
         };
 
