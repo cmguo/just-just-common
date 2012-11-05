@@ -82,7 +82,7 @@ namespace ppbox
                 key_type const & key, 
                 Arg1 & arg1)
             {
-                creator_map_type::const_iterator iter = 
+                typename creator_map_type::const_iterator iter = 
                     creator_map.find(key);
                 if (iter == creator_map.end())
                     return class_type();
@@ -98,7 +98,7 @@ namespace ppbox
                 Arg1 & arg1, 
                 Arg1 & arg2)
             {
-                creator_map_type::const_iterator iter = 
+                typename creator_map_type::const_iterator iter = 
                     creator_map.find(key);
                 if (iter == creator_map.end())
                     return class_type();
@@ -106,7 +106,6 @@ namespace ppbox
             }
 
         private:
-            typedef boost::function<CreateProto> creator_type;
             static creator_map_type creator_map;
         };
 

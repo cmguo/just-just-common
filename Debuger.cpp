@@ -2,6 +2,7 @@
 
 #include "ppbox/common/Common.h"
 #include "ppbox/common/Debuger.h"
+#include "ppbox/common/LogBuffer.h"
 
 #include <util/buffers/BuffersCopy.h>
 
@@ -11,7 +12,6 @@
 #include <framework/container/Array.h>
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
-#include <framework/logger/Stream.h>
 using namespace framework::string;
 using namespace framework::logger;
 using namespace framework::process;
@@ -26,19 +26,6 @@ using namespace boost::system;
 #define DEBUG_OBJECT_ID 102
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Debuger", Debug)
-
-namespace boost
-{
-    namespace asio
-    {
-
-        inline const_buffers_1 buffer(Stream::buffer_t const & data)
-        {
-            return const_buffers_1(const_buffer(data.buf, data.len));
-        }
-
-    }
-}
 
 namespace ppbox
 {
