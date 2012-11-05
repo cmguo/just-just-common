@@ -48,7 +48,9 @@ PROJECT_LINK_FLAGS		:= $(PROJECT_LINK_FLAGS)
 
 ## 该项目依赖的其他项目
 
-PROJECT_DEPENDS			:= /base/util \
+PROJECT_DEPENDS			:= \
+				/base/util \
+				/base/security \
 				$(PROJECT_DEPENDS)
 
 ## 该项目特定的引用库
