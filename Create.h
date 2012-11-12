@@ -1,7 +1,7 @@
 // Create.h
 
-#ifndef PPBOX_COMMON_CREATE_H_
-#define PPBOX_COMMON_CREATE_H_
+#ifndef _PPBOX_COMMON_CREATE_H_
+#define _PPBOX_COMMON_CREATE_H_
 
 #include <boost/function.hpp>
 
@@ -9,6 +9,7 @@ namespace ppbox
 {
     namespace common
     {
+
         template <
             typename Class
         >
@@ -52,70 +53,7 @@ namespace ppbox
             }
         };
 
-        template <
-            typename KeyType, 
-            typename CreateProto
-        >
-        class ClassFactory
-        {
-        private:
-            typedef KeyType key_type;
-            typedef boost::function<CreateProto> creator_type;
-            typedef typename creator_type::result_type class_type;
-            typedef std::map<KeyType, creator_type> creator_map_type;
+    } // namespace commom
+} // namespace ppbox
 
-        public:
-            template <
-                typename CreatorType
-            >
-            static void register_class(
-                key_type const & key, 
-                CreatorType creator)
-            {
-                creator_map.insert(std::make_pair(key, creator_type(creator)));
-            }
-
-            template <
-                typename Arg1
-            >
-            static class_type create(
-                key_type const & key, 
-                Arg1 & arg1)
-            {
-                typename creator_map_type::const_iterator iter = 
-                    creator_map.find(key);
-                if (iter == creator_map.end())
-                    return class_type();
-                return iter.second(arg1);
-            }
-
-            template <
-                typename Arg1, 
-                typename Arg2
-            >
-            static class_type create(
-                key_type const & key, 
-                Arg1 & arg1, 
-                Arg1 & arg2)
-            {
-                typename creator_map_type::const_iterator iter = 
-                    creator_map.find(key);
-                if (iter == creator_map.end())
-                    return class_type();
-                return iter.second(arg1, arg2);
-            }
-
-        private:
-            static creator_map_type creator_map;
-        };
-
-        template <
-            typename KeyType, 
-            typename CreateProto
-        >
-        typename ClassFactory<KeyType, CreateProto>::creator_map_type ClassFactory<KeyType, CreateProto>::creator_map;
-
-    }
-}
-
-#endif
+#endif // _PPBOX_COMMON_CREATE_H_
