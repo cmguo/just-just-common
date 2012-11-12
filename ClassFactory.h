@@ -31,12 +31,12 @@ namespace ppbox
 
         public:
             template <
-                typename ClassType
+                typename DerivedClassType
             >
             static void register_class(
                 key_type const & key)
             {
-                creator_map().insert(std::make_pair(key, creator_type(Creator<ClassType>())));
+                creator_map().insert(std::make_pair(key, creator_type(Creator<DerivedClassType>())));
             }
 
             template <
