@@ -20,7 +20,7 @@ namespace ppbox
         >
         class ClassFactory
         {
-        private:
+        protected:
             typedef KeyType key_type;
             typedef ClassType * result_type;
             typedef boost::function<CreateProto> creator_type;
@@ -114,7 +114,7 @@ namespace ppbox
                 obj = result_type();
             }
 
-        private:
+        protected:
             static creator_map_type & creator_map()
             {
                 static creator_map_type smap;
