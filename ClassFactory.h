@@ -39,14 +39,11 @@ namespace ppbox
                 creator_map().insert(std::make_pair(key, creator_type(Creator<DerivedClassType>())));
             }
 
-            template <
-                typename CreatorType
-            >
             static void register_creator(
                 key_type const & key, 
-                CreatorType creator)
+                creator_type creator)
             {
-                creator_map().insert(std::make_pair(key, creator_type(creator)));
+                creator_map().insert(std::make_pair(key, creator));
             }
 
             static result_type create(
@@ -128,8 +125,11 @@ namespace ppbox
 #ifdef PPBOX_ENABLE_REGISTER_CLASS
 #  define PPBOX_REGISTER_CLASS(k, c) \
     static ppbox::common::Call reg ## k(c::register_class<c>, BOOST_PP_STRINGIZE(k))
+#  define PPBOX_REGISTER_CLASS2(k, c, f) \
+    static ppbox::common::Call reg ## k(c::register_creator, BOOST_PP_STRINGIZE(k), f)
 #else
 #  define PPBOX_REGISTER_CLASS(k, c)
+#  define PPBOX_REGISTER_CLASS2(k, c, f)
 #endif
 
 #endif // _PPBOX_COMMON_CLASS_FACTORY_H_
