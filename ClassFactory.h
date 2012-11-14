@@ -123,10 +123,11 @@ namespace ppbox
 } // namespace ppbox
 
 #ifdef PPBOX_ENABLE_REGISTER_CLASS
+#define PPBOX_REGISTER_CLASS_NAME(c) BOOST_PP_CAT(reg_class_, BOOST_PP_CAT(c, __LINE__))
 #  define PPBOX_REGISTER_CLASS(k, c) \
-    static ppbox::common::Call reg ## k(c::register_class<c>, BOOST_PP_STRINGIZE(k))
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(c)(c::register_class<c>, k)
 #  define PPBOX_REGISTER_CLASS2(k, c, f) \
-    static ppbox::common::Call reg ## k(c::register_creator, BOOST_PP_STRINGIZE(k), f)
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(c)(c::register_creator, k, f)
 #else
 #  define PPBOX_REGISTER_CLASS(k, c)
 #  define PPBOX_REGISTER_CLASS2(k, c, f)
