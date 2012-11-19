@@ -30,15 +30,6 @@ namespace ppbox
             typedef ClassFactory factory_type;
 
         public:
-            template <
-                typename DerivedClassType
-            >
-            static void register_class(
-                key_type const & key)
-            {
-                creator_map().insert(std::make_pair(key, creator_type(Creator<DerivedClassType>())));
-            }
-
             static void register_creator(
                 key_type const & key, 
                 creator_type creator)
@@ -123,14 +114,20 @@ namespace ppbox
 } // namespace ppbox
 
 #ifdef PPBOX_ENABLE_REGISTER_CLASS
-#define PPBOX_REGISTER_CLASS_NAME(c) BOOST_PP_CAT(reg_class_, BOOST_PP_CAT(c, __LINE__))
-#  define PPBOX_REGISTER_CLASS(k, c) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(c)(c::register_class<c>, k)
-#  define PPBOX_REGISTER_CLASS2(k, c, f) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(c)(c::register_creator, k, f)
+#define PPBOX_REGISTER_CLASS_NAME(cls) BOOST_PP_CAT(reg_class_, BOOST_PP_CAT(cls, __LINE__))
+#  define PPBOX_REGISTER_CLASS(key, cls) \
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(cls::register_creator, key, ppbox::common::Creator<cls>())
+#  define PPBOX_REGISTER_CLASS_FUNC(key, cls, func) \
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(cls::register_creator, key, func)
+#  define PPBOX_REGISTER_CLASS_FACTORY(key, fact, cls) \
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(fact::register_creator, key, ppbox::common::Creator<cls>())
+#  define PPBOX_REGISTER_CLASS_FACTORY_FUNC(key, fact, func) \
+    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(fact::register_creator, key, func)
 #else
-#  define PPBOX_REGISTER_CLASS(k, c)
-#  define PPBOX_REGISTER_CLASS2(k, c, f)
+#  define PPBOX_REGISTER_CLASS(key, cls)
+#  define PPBOX_REGISTER_CLASS_FUNC(key, cls, func)
+#  define PPBOX_REGISTER_CLASS_FACTORY(key, fact, cls)
+#  define PPBOX_REGISTER_CLASS_FACTORY_FUNC(key, fact, func)
 #endif
 
 #endif // _PPBOX_COMMON_CLASS_FACTORY_H_
