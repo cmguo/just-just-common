@@ -6,7 +6,6 @@
 #include <ppbox/common/Debuger.h>
 
 #include <framework/network/NetName.h>
-using namespace framework::logger;
 using namespace framework::process;
 
 #include <util/protocol/http/HttpRequest.h>
@@ -28,7 +27,7 @@ using namespace boost::system;
 #  define snprintf _snprintf
 #endif
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.DebugProxy", Debug);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.DebugProxy", framework::logger::Debug);
 
 namespace ppbox
 {

@@ -8,12 +8,11 @@
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
 #include <framework/configure/Config.h>
-using namespace framework::logger;
 using namespace framework::process;
 using namespace framework::configure;
 
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.CommonModule", Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.CommonModule", framework::logger::Debug)
 
 namespace ppbox
 {

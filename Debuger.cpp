@@ -13,7 +13,6 @@
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
 using namespace framework::string;
-using namespace framework::logger;
 using namespace framework::process;
 
 #include <boost/bind.hpp>
@@ -25,7 +24,7 @@ using namespace boost::system;
 
 #define DEBUG_OBJECT_ID 102
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Debuger", Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Debuger", framework::logger::Debug)
 
 namespace ppbox
 {
@@ -33,7 +32,7 @@ namespace ppbox
     {
 
         class HookLogStream
-            : public Stream
+            : public framework::logger::Stream
         {
         public:
             HookLogStream()
@@ -68,7 +67,7 @@ namespace ppbox
 
         // 写入消息队列
         class MsgQueueStream 
-            : public Stream
+            : public framework::logger::Stream
         {
         public:
             MsgQueueStream(
@@ -162,12 +161,12 @@ namespace ppbox
             timer_ = NULL;
 
             if (hook_streamed_) {
-                del_stream(global_logger(), *hook_log_stream_);
+                framework::logger::del_stream(*hook_log_stream_);
             }
 
             if (out_streamed_) {
                 LOG_INFO("[shutdown] leave debug mode");
-                del_stream(global_logger(), *debug_log_stream_);
+                framework::logger::del_stream(*debug_log_stream_);
             }
        }
 
@@ -191,7 +190,7 @@ namespace ppbox
         {
             if (hook == NULL) {
                 if (hook_log_stream_) {
-                    del_stream(global_logger(), *hook_log_stream_);
+                    framework::logger::del_stream(*hook_log_stream_);
                     hook_log_stream_->set_log_dump(hook, 0);
                 }
                 hook_streamed_ = false;
@@ -201,7 +200,7 @@ namespace ppbox
                 }
                 hook_log_stream_->set_log_dump(hook, level);
                 hook_streamed_ = true;
-                add_stream(global_logger(), *hook_log_stream_);
+                framework::logger::add_stream(*hook_log_stream_);
             }
         }
 
@@ -247,12 +246,12 @@ namespace ppbox
                         debug_log_stream_ = new MsgQueueStream(msg_queue());
                     }
                     out_streamed_ = true;
-                    add_stream(global_logger(), *debug_log_stream_);
+                    framework::logger::add_stream(*debug_log_stream_);
                     LOG_INFO("[check_debug_mode] enter debug mode");
                 } else  if (*debug_mode_ == 0 && debug_log_stream_) {
                     LOG_INFO("[check_debug_mode] leave debug mode");
                     out_streamed_ = false;
-                    del_stream(global_logger(), *debug_log_stream_);
+                    framework::logger::del_stream(*debug_log_stream_);
                 }
             }
         }
