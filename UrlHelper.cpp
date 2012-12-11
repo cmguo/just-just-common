@@ -1,7 +1,7 @@
-// CommonUrl.cpp
+// UrlHelper.cpp
 
 #include "ppbox/common/Common.h"
-#include "ppbox/common/CommonUrl.h"
+#include "ppbox/common/UrlHelper.h"
 
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
@@ -110,6 +110,26 @@ namespace ppbox
             }
             url.decode();
             return true;
+        }
+
+        void apply_config(
+            framework::configure::Config & config, 
+            framework::string::Url const & url, 
+            std::string const & prefix)
+        {
+            framework::string::Url::param_const_iterator iter = url.param_begin();
+            for (; iter != url.param_end(); ++iter) {
+                std::string key = iter->key();
+                if (key.compare(0, prefix.size(), prefix) == 0) {
+                    std::string::size_type pos_dot = key.rfind('.');
+                    if (pos_dot == std::string::npos || pos_dot <= prefix.size())
+                        continue;
+                    config.set(
+                        key.substr(prefix.size(), pos_dot), 
+                        key.substr(pos_dot + 1), 
+                        iter->value());
+                }
+            }
         }
 
     } // namespace common
