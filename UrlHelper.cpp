@@ -125,7 +125,7 @@ namespace ppbox
                     if (pos_dot == std::string::npos || pos_dot <= prefix.size())
                         continue;
                     config.set(
-                        key.substr(prefix.size(), pos_dot), 
+                        key.substr(prefix.size(), pos_dot - prefix.size()), 
                         key.substr(pos_dot + 1), 
                         iter->value());
                 }
