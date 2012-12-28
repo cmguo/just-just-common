@@ -14,6 +14,7 @@ using namespace framework::process;
 using namespace util::protocol;
 
 #include <boost/asio/read.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 using namespace boost::system;
