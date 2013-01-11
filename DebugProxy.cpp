@@ -76,7 +76,8 @@ namespace ppbox
                 exit_ = true;
 
                 util::protocol::HttpClient client(io_svc());
-                client.connect(addr_, ec);
+                framework::network::NetName addr("127.0.0.1", addr_.port());
+                client.connect(addr, ec);
 
                 acceptor_.close(ec);
 
