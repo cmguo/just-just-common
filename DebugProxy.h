@@ -5,6 +5,8 @@
 
 #include <util/protocol/http/HttpSocket.h>
 
+#include <framework/network/Acceptor.h>
+
 namespace ppbox
 {
     namespace common
@@ -33,7 +35,7 @@ namespace ppbox
             Debuger & debuger_;
             framework::network::NetName addr_;
             util::protocol::HttpSocket socket_;
-            boost::asio::ip::tcp::acceptor acceptor_;
+            framework::network::Acceptor acceptor_;
             boost::thread * work_thread_;
             bool exit_;
             boost::mutex mutex_;

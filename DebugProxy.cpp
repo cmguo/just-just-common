@@ -5,13 +5,14 @@
 
 #include <ppbox/common/Debuger.h>
 
-#include <framework/network/NetName.h>
-using namespace framework::process;
-
 #include <util/protocol/http/HttpRequest.h>
 #include <util/protocol/http/HttpResponse.h>
-#include <util/protocol/http/HttpClient.h>
+#include <util/protocol/http/HttpSocket.h>
 using namespace util::protocol;
+
+#include <framework/network/NetName.h>
+#include <framework/network/TcpSocket.hpp>
+using namespace framework::process;
 
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
@@ -56,8 +57,7 @@ namespace ppbox
         error_code DebugProxy::startup()
         {
             error_code ec;
-            if (framework::network::acceptor_open<boost::asio::ip::tcp>(acceptor_, addr_.endpoint(), ec))
-            {
+            if (acceptor_.open<boost::asio::ip::tcp>(addr_.endpoint(), ec)) {
                 ec.clear();
                 return ec;
             }
@@ -75,7 +75,7 @@ namespace ppbox
                 error_code ec;
                 exit_ = true;
 
-                util::protocol::HttpClient client(io_svc());
+                util::protocol::HttpSocket client(io_svc());
                 framework::network::NetName addr("127.0.0.1", addr_.port());
                 client.connect(addr, ec);
 
@@ -99,7 +99,7 @@ namespace ppbox
             framework::network::NetName addr("(tcp)(v4)0.0.0.0:9003");
             while (!exit_) {
                 ec.clear();
-                socket_.accept(addr, acceptor_, ec);
+                socket_.accept(acceptor_, ec);
 
                 {
                     boost::mutex::scoped_lock lock(mutex_);
