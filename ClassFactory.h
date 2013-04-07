@@ -1,10 +1,7 @@
-// Create.h
+// ClassFactory.h
 
 #ifndef _PPBOX_COMMON_CLASS_FACTORY_H_
 #define _PPBOX_COMMON_CLASS_FACTORY_H_
-
-#include "ppbox/common/Create.h"
-#include "ppbox/common/Call.h"
 
 #include <boost/function.hpp>
 
@@ -113,21 +110,8 @@ namespace ppbox
     } // namespace commom
 } // namespace ppbox
 
-#ifdef PPBOX_ENABLE_REGISTER_CLASS
-#define PPBOX_REGISTER_CLASS_NAME(cls) BOOST_PP_CAT(reg_class_, BOOST_PP_CAT(cls, __LINE__))
-#  define PPBOX_REGISTER_CLASS(key, cls) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(cls::register_creator, key, ppbox::common::Creator<cls>())
-#  define PPBOX_REGISTER_CLASS_FUNC(key, cls, func) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(cls::register_creator, key, func)
-#  define PPBOX_REGISTER_CLASS_FACTORY(key, fact, cls) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(fact::register_creator, key, ppbox::common::Creator<cls>())
-#  define PPBOX_REGISTER_CLASS_FACTORY_FUNC(key, fact, func) \
-    static ppbox::common::Call PPBOX_REGISTER_CLASS_NAME(cls)(fact::register_creator, key, func)
-#else
-#  define PPBOX_REGISTER_CLASS(key, cls)
-#  define PPBOX_REGISTER_CLASS_FUNC(key, cls, func)
-#  define PPBOX_REGISTER_CLASS_FACTORY(key, fact, cls)
-#  define PPBOX_REGISTER_CLASS_FACTORY_FUNC(key, fact, func)
-#endif
+#define PPBOX_DELAY_REGISTER_CLASS
+#include "ppbox/common/ClassRegister.h"
+#undef PPBOX_DELAY_REGISTER_CLASS
 
 #endif // _PPBOX_COMMON_CLASS_FACTORY_H_
