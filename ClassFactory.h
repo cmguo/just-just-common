@@ -13,7 +13,8 @@ namespace ppbox
         template <
             typename ClassType, 
             typename KeyType, 
-            typename CreateProto
+            typename CreateProto, 
+            typename FactoryType = void
         >
         class ClassFactory
         {
