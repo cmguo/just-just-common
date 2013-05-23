@@ -30,7 +30,7 @@ namespace ppbox
 
         void * ScheduleManager::schedule_callback(
             boost::uint32_t delay, // ms
-            void * user_data, 
+            void const * user_data, 
             callback_t const & callback)
         {
             boost::asio::deadline_timer * timer2 = new boost::asio::deadline_timer(io_svc());
@@ -40,7 +40,7 @@ namespace ppbox
         }
 
         void ScheduleManager::cancel_callback(
-            void * handle, 
+            void const * handle, 
             boost::system::error_code & ec)
         {
             boost::asio::deadline_timer * timer = (boost::asio::deadline_timer *)handle;

@@ -15,7 +15,7 @@ namespace ppbox
         {
         public:
             typedef boost::function<
-                void (void *, boost::system::error_code const & ec)> callback_t;
+                void (void const *, boost::system::error_code const & ec)> callback_t;
 
         public:
             ScheduleManager(
@@ -29,11 +29,11 @@ namespace ppbox
         public:
             void * schedule_callback(
                 boost::uint32_t delay, // ms
-                void * user_data, 
+                void const * user_data, 
                 callback_t const & callback);
 
             void cancel_callback(
-                void * handle, 
+                void const * handle, 
                 boost::system::error_code & ec);
         };
 
