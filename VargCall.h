@@ -9,6 +9,8 @@
 #include <boost/preprocessor/enum.hpp>
 #include <boost/preprocessor/comma_if.hpp>
 
+#include <stdarg.h>
+
 namespace ppbox
 {
     namespace common
@@ -52,7 +54,8 @@ namespace ppbox
             template <typename R BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM(n, VA_OP_0, _)> \
             R call( \
                 R (*f)(BOOST_PP_ENUM(n, VA_OP_1, _)) BOOST_PP_COMMA_IF(n) \
-                BOOST_PP_ENUM(n, VA_OP_2, _)) \
+                BOOST_PP_ENUM(n, VA_OP_2, _), \
+                ...) \
             { \
                 if (call_) { \
                     R r; \
@@ -70,7 +73,8 @@ namespace ppbox
 #include BOOST_PP_LOCAL_ITERATE()
 
             void call( 
-                void (*f)()) 
+                void (*f)(), 
+                ...)
             { 
                 if (call_) { 
                     va_list args; 
@@ -87,7 +91,8 @@ namespace ppbox
             template <BOOST_PP_ENUM(n, VA_OP_0, _)> \
             void call( \
                 void (*f)(BOOST_PP_ENUM(n, VA_OP_1, _)), \
-                BOOST_PP_ENUM(n, VA_OP_2, _)) \
+                BOOST_PP_ENUM(n, VA_OP_2, _), \
+                ...) \
             { \
                 if (call_) { \
                     va_list args; \
