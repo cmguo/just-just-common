@@ -55,8 +55,9 @@ namespace ppbox
                 if (!callback_)
                     return;
                 size_t size = util::buffers::buffers_copy(
-                    boost::asio::buffer((void *)buf_, sizeof(buf_)), 
+                    boost::asio::buffer((void *)buf_, sizeof(buf_) - 1), 
                     framework::container::make_array(bufs, len));
+                buf_[size] = 0;
                 callback_(buf_, size);
             }
 
