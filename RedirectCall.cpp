@@ -1,14 +1,14 @@
-// VargCall.cpp
+// RedirectCall.cpp
 
 #include "ppbox/common/Common.h"
-#include "ppbox/common/VargCall.h"
+#include "ppbox/common/RedirectCall.h"
 
 namespace ppbox
 {
     namespace common
     {
 
-        VargCall::VargCall(
+        RedirectCall::RedirectCall(
             call_t call, 
             free_t free, 
             context_t context)
@@ -18,7 +18,7 @@ namespace ppbox
         {
         }
 
-        void VargCall::set(
+        void RedirectCall::set(
             call_t call, 
             free_t free, 
             context_t context)

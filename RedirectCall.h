@@ -1,7 +1,7 @@
-// VargCall.h
+// RedirectCall.h
 
-#ifndef PPBOX_COMMON_VARG_CALL_H_
-#define PPBOX_COMMON_VARG_CALL_H_
+#ifndef PPBOX_COMMON_REDIRECT_CALL_H_
+#define PPBOX_COMMON_REDIRECT_CALL_H_
 
 #include <boost/preprocessor/iteration/local.hpp>
 #include <boost/preprocessor/stringize.hpp>
@@ -16,7 +16,7 @@ namespace ppbox
     namespace common
     {
 
-        class VargCall
+        class RedirectCall
         {
         public:
             typedef void const * context_t;
@@ -33,7 +33,7 @@ namespace ppbox
                 context_t); // context
 
         public:
-            VargCall(
+            RedirectCall(
                 call_t call = NULL, 
                 free_t free = NULL, 
                 context_t context = NULL);
@@ -54,15 +54,11 @@ namespace ppbox
             template <typename R BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM(n, VA_OP_0, _)> \
             R call( \
                 R (*f)(BOOST_PP_ENUM(n, VA_OP_1, _)) BOOST_PP_COMMA_IF(n) \
-                BOOST_PP_ENUM(n, VA_OP_2, _), \
-                ...) \
+                BOOST_PP_ENUM(n, VA_OP_2, _))\
             { \
                 if (call_) { \
                     R r; \
-                    va_list args; \
-                    va_start(args, f); \
-                    call_(context_, (caller_t)f, &r, args); \
-                    va_end(args); \
+                    redirect_call((caller_t)f, &r BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM(n, VA_OP_3, _)); \
                     return r; \
                 } else { \
                     return f(BOOST_PP_ENUM(n, VA_OP_3, _)); \
@@ -73,14 +69,10 @@ namespace ppbox
 #include BOOST_PP_LOCAL_ITERATE()
 
             void call( 
-                void (*f)(), 
-                ...)
+                void (*f)())
             { 
                 if (call_) { 
-                    va_list args; 
-                    va_start(args, f); 
-                    call_(context_, (caller_t)f, NULL, args); 
-                    va_end(args); 
+                    redirect_call((caller_t)f, NULL); 
                     return; 
                 } else { 
                     return f(); 
@@ -91,14 +83,10 @@ namespace ppbox
             template <BOOST_PP_ENUM(n, VA_OP_0, _)> \
             void call( \
                 void (*f)(BOOST_PP_ENUM(n, VA_OP_1, _)), \
-                BOOST_PP_ENUM(n, VA_OP_2, _), \
-                ...) \
+                BOOST_PP_ENUM(n, VA_OP_2, _)) \
             { \
                 if (call_) { \
-                    va_list args; \
-                    va_start(args, f); \
-                    call_(context_, (caller_t)f, NULL, args); \
-                    va_end(args); \
+                    redirect_call((caller_t)f, NULL, BOOST_PP_ENUM(n, VA_OP_3, _)); \
                     return; \
                 } else { \
                     return f(BOOST_PP_ENUM(n, VA_OP_3, _)); \
@@ -117,6 +105,18 @@ namespace ppbox
             }
 
         private:
+            void redirect_call(
+                caller_t caller, 
+                void * result, 
+                ...)
+            {
+                va_list args;
+                va_start(args, result); \
+                call_(context_, caller, result, args); \
+                va_end(args);
+            }
+
+        private:
             call_t call_;
             free_t free_;
             context_t context_;
@@ -125,4 +125,4 @@ namespace ppbox
     } // common
 } // ppbox
 
-#endif // PPBOX_COMMON_VARG_CALL_H_
+#endif // PPBOX_COMMON_REDIRECT_CALL_H_
