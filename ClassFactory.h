@@ -28,6 +28,13 @@ namespace ppbox
             typedef ClassFactory factory_type;
 
         public:
+            // override by devide classes
+            static boost::system::error_code error_not_found()
+            {
+                return framework::system::logic_error::item_not_exist;
+            }
+
+        public:
             static void register_creator(
                 key_type const & key, 
                 creator_type creator)
@@ -36,12 +43,16 @@ namespace ppbox
             }
 
             static result_type create(
-                key_type const & key)
+                key_type const & key, 
+                boost::system::error_code & ec)
             {
                 typename creator_map_type::const_iterator iter = 
                     creator_map().find(key);
-                if (iter == creator_map().end())
+                if (iter == creator_map().end()) {
+                    ec = ClassType::error_not_found();
                     return result_type();
+                }
+                ec.clear();
                 return iter->second();
             }
 
@@ -50,12 +61,16 @@ namespace ppbox
             >
             static result_type create(
                 key_type const & key, 
-                Arg1 & arg1)
+                Arg1 & arg1, 
+                boost::system::error_code & ec)
             {
                 typename creator_map_type::const_iterator iter = 
                     creator_map().find(key);
-                if (iter == creator_map().end())
+                if (iter == creator_map().end()) {
+                    ec = ClassType::error_not_found();
                     return result_type();
+                }
+                ec.clear();
                 return iter->second(arg1);
             }
 
@@ -66,12 +81,16 @@ namespace ppbox
             static result_type create(
                 key_type const & key, 
                 Arg1 & arg1, 
-                Arg2 & arg2)
+                Arg2 & arg2, 
+                boost::system::error_code & ec)
             {
                 typename creator_map_type::const_iterator iter = 
                     creator_map().find(key);
-                if (iter == creator_map().end())
+                if (iter == creator_map().end()) {
+                    ec = ClassType::error_not_found();
                     return result_type();
+                }
+                ec.clear();
                 return iter->second(arg1, arg2);
             }
 
@@ -84,12 +103,16 @@ namespace ppbox
                 key_type const & key, 
                 Arg1 & arg1, 
                 Arg2 & arg2, 
-                Arg3 & arg3)
+                Arg3 & arg3, 
+                boost::system::error_code & ec)
             {
                 typename creator_map_type::const_iterator iter = 
                     creator_map().find(key);
-                if (iter == creator_map().end())
+                if (iter == creator_map().end()) {
+                    ec = ClassType::error_not_found();
                     return result_type();
+                }
+                ec.clear();
                 return iter->second(arg1, arg2, arg3);
             }
 
