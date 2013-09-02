@@ -2,16 +2,15 @@
 
 #include "ppbox/common/Common.h"
 #include "ppbox/common/Debuger.h"
-#include "ppbox/common/LogBuffer.h"
 
 #include <util/buffers/BuffersCopy.h>
 
 #include <framework/timer/Timer.h>
 #include <framework/timer/TimeCounter.h>
 #include <framework/string/Format.h>
-#include <framework/container/Array.h>
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
+#include <framework/logger/Stream.h>
 using namespace framework::string;
 using namespace framework::process;
 
@@ -49,14 +48,13 @@ namespace ppbox
             }
 
             virtual void write(
-                buffer_t const * bufs, 
-                size_t len)
+                buffers_t const & buffers)
             {
                 if (!callback_)
                     return;
                 size_t size = util::buffers::buffers_copy(
                     boost::asio::buffer((void *)buf_, sizeof(buf_) - 1), 
-                    framework::container::make_array(bufs, len));
+                    buffers);
                 buf_[size] = 0;
                 callback_(buf_, size);
             }
@@ -78,11 +76,10 @@ namespace ppbox
             }
 
             virtual void write(
-                buffer_t const * bufs, 
-                size_t len)
+                buffers_t const & buffers)
             {
                 framework::process::Message msg;
-                parse_log(msg, bufs, len);
+                parse_log(msg, buffers);
                 if (!msg.receiver.empty()) {
                     m_msgqueue_.push(msg);
                 }
@@ -91,8 +88,7 @@ namespace ppbox
             // Ω‚Œˆ»’÷æ
             void parse_log(
                 framework::process::Message & msg, 
-                buffer_t const * bufs, 
-                size_t len)
+                buffers_t const & buffers)
             {
                 msg.level = 1;
                 msg.receiver = "Debuger";
@@ -100,7 +96,7 @@ namespace ppbox
                 msg.data.resize(1024);
                 size_t size = util::buffers::buffers_copy(
                     boost::asio::buffer(&msg.data[0], msg.data.size()), 
-                    framework::container::make_array(bufs, len));
+                    buffers);
                 msg.data.resize(size);
             }
 
