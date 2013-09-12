@@ -40,7 +40,7 @@ namespace ppbox
             util::daemon::Daemon & daemon)
             : util::daemon::ModuleBase<DebugProxy>(daemon, "DebugProxy")
             , debuger_(util::daemon::use_module<Debuger>(daemon))
-            , addr_("(tcp)(v4)0.0.0.0:9003")
+            , addr_("(tcp)(v4)0.0.0.0:9003+")
             , socket_(io_svc())
             , acceptor_(io_svc())
             , work_thread_(NULL)
