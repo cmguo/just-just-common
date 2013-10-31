@@ -34,6 +34,12 @@ namespace ppbox
             std::vector<boost::uint8_t> cache_;
         };
 
+        inline BlobManager & blob_manager()
+        {
+            static BlobManager manager;
+            return manager;
+        }
+
     } // namespace common
 } // namespace ppbox
 

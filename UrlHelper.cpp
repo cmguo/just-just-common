@@ -2,6 +2,7 @@
 
 #include "ppbox/common/Common.h"
 #include "ppbox/common/UrlHelper.h"
+#include "ppbox/common/BlobManager.h"
 
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
@@ -15,28 +16,30 @@ namespace ppbox
     {
 
         static bool decode_base16(
-            framework::string::Url & url, 
+            std::string const & input, 
+            std::string & output, 
             boost::system::error_code & ec)
         {
-            std::string path = framework::string::Base16::decode(url.path());
-            if (path == "E1" || path == "E2") {
+            std::string result = framework::string::Base16::decode(input);
+            if (result == "E1" || result == "E2") {
                 ec = framework::system::logic_error::invalid_argument;
                 return false;
             }
-            url.path(path);
+            output.swap(result);
             return true;
         }
 
         static bool decode_base64(
-            framework::string::Url & url, 
+            std::string const & input, 
+            std::string & output, 
             boost::system::error_code & ec)
         {
-            std::string path = framework::string::Base64::decode(url.path());
-            if (path.empty()) {
+            std::string result = framework::string::Base64::decode(input);
+            if (result.empty()) {
                 ec = framework::system::logic_error::invalid_argument;
                 return false;
             }
-            url.path(path);
+            output.swap(result);
             return true;
         }
 
@@ -56,11 +59,17 @@ namespace ppbox
         };
 
         static bool decode_3des(
-            framework::string::Url & url, 
+            std::string const & input, 
+            std::string & output, 
             boost::system::error_code & ec)
         {
             boost::uint32_t key_index = 0;
-            ec = framework::string::parse2(url.param("key").c_str(), key_index);
+            std::string::size_type colon = input.find('|');
+            if (colon == std::string::npos) {
+                ec = framework::system::logic_error::invalid_argument;
+                return false;
+            }
+            ec = framework::string::parse2(input.substr(0, colon), key_index);
             if (ec) {
                 return false;
             }
@@ -68,13 +77,29 @@ namespace ppbox
                 ec = framework::system::logic_error::invalid_argument;
                 return false;
             }
-            std::string path;
-            path.resize(url.path().size());
-            if(!security::Des::pptv_3_des_d(url.path().c_str(), url.path().size(), gsKey[key_index], 24, &path[0], path.size())) {
+            ++colon;
+            std::string result;
+            result.resize(input.size() - colon);
+            if(!security::Des::pptv_3_des_d(input.substr(colon).c_str(), input.size() - colon, gsKey[key_index], 24, &result[0], result.size())) {
                 ec = framework::system::logic_error::invalid_argument;
                 return false;
             }
-            url.param("key", "");
+            output.swap(result);
+            return true;
+        }
+
+        static bool decode_blob(
+            std::string const & input, 
+            std::string & output, 
+            boost::system::error_code & ec)
+        {
+            boost::asio::const_buffer blob;
+            if ((ec = ppbox::common::blob_manager().get(input, blob))) {
+                return false;
+            }
+            char const * str = boost::asio::buffer_cast<char const *>(blob);
+            size_t size = boost::asio::buffer_size(blob);
+            output.assign(str, str + size);
             return true;
         }
 
@@ -82,30 +107,41 @@ namespace ppbox
         {
             std::string name;
             bool (*decoder)(
-                framework::string::Url &, 
+                std::string const &, 
+                std::string &, 
                 boost::system::error_code &);
         } decoders[] = {
-            {"/base16", decode_base16}, 
-            {"/base64", decode_base64}, 
-            {"/3des", decode_3des}, 
-            {"/code=", decode_3des}, 
+            {"base16|", decode_base16}, 
+            {"base64|", decode_base64}, 
+            {"3des|", decode_3des}, 
+            {"blob|", decode_blob}, 
         };
+
+        static bool decode(
+            std::string const & input, 
+            std::string & output, 
+            boost::system::error_code & ec)
+        {
+            for (size_t i = 0; i < sizeof(decoders) / sizeof(decoders[0]); ++i) {
+                if (input.compare(0, decoders[i].name.size(), decoders[i].name) == 0) {
+                    return decoders[i].decoder(input.substr(decoders[i].name.size()), output, ec);
+                }
+            }
+            output = input;
+            return true;
+        }
 
         bool decode_url(
             framework::string::Url & url, 
             boost::system::error_code & ec)
         {
-            for (size_t i = 0; i < sizeof(decoders) / sizeof(decoders[0]); ++i) {
-                if (url.path().compare(0, decoders[i].name.size(), decoders[i].name) == 0) {
-                    url.path(url.path().substr(decoders[i].name.size()));
-                    if (!decoders[i].decoder(url, ec)) {
-                        return false;
-                    }
-                    framework::string::Url ur12("http:///" + url.path());
-                    url.path(ur12.path());
-                    for (framework::string::Url::param_iterator iter = ur12.param_begin(); iter != ur12.param_end(); ++iter) {
-                        url.param(iter->key(), iter->value());
-                    }
+            std::string output;
+            if (decode(url.path().substr(1), output, ec)) {
+                url.path("/" + output);
+                framework::string::Url ur12("http:///" + url.path());
+                url.path(ur12.path());
+                for (framework::string::Url::param_iterator iter = ur12.param_begin(); iter != ur12.param_end(); ++iter) {
+                    url.param(iter->key(), iter->value());
                 }
             }
             url.decode();
@@ -130,6 +166,19 @@ namespace ppbox
                         iter->value());
                 }
             }
+        }
+
+        bool decode_param(
+            framework::string::Url & url, 
+            std::string const & key, 
+            boost::system::error_code & ec)
+        {
+            std::string result;
+            if (!decode(url.param(key), result, ec)) {
+                return false;
+            }
+            url.param(key, result);
+            return true;
         }
 
     } // namespace common

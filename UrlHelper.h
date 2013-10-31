@@ -20,6 +20,11 @@ namespace ppbox
                 framework::string::Url const & url, 
                 std::string const & prefix);
 
+            bool decode_param(
+                framework::string::Url & url, 
+                std::string const & key, 
+                boost::system::error_code & ec);
+
     } // namespace common
 } // namespace ppbox
 
