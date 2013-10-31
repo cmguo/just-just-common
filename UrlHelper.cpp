@@ -7,8 +7,12 @@
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
 #include <framework/string/Slice.h>
+#include <framework/system/ErrorCode.h>
 
 #include <security/Des.h>
+
+#include <fstream>
+#include <iterator>
 
 namespace ppbox
 {
@@ -103,6 +107,23 @@ namespace ppbox
             return true;
         }
 
+        static bool decode_file(
+            std::string const & input, 
+            std::string & output, 
+            boost::system::error_code & ec)
+        {
+            std::ifstream ifs;
+            ifs.open(input.c_str(), std::ios::binary);
+            if (!ifs) {
+                ec = framework::system::last_system_error();
+                return false;
+            }
+            ifs >> std::noskipws;
+            std::istream_iterator<char> beg(ifs), end;
+            std::copy(beg, end, std::inserter(output, output.end()));
+            return true;
+        }
+
         static struct
         {
             std::string name;
@@ -115,6 +136,7 @@ namespace ppbox
             {"base64|", decode_base64}, 
             {"3des|", decode_3des}, 
             {"blob|", decode_blob}, 
+            {"file|", decode_file}, 
         };
 
         static bool decode(
@@ -137,8 +159,7 @@ namespace ppbox
         {
             std::string output;
             if (decode(url.path().substr(1), output, ec)) {
-                url.path("/" + output);
-                framework::string::Url ur12("http:///" + url.path());
+                framework::string::Url ur12("http:///" + output);
                 url.path(ur12.path());
                 for (framework::string::Url::param_iterator iter = ur12.param_begin(); iter != ur12.param_end(); ++iter) {
                     url.param(iter->key(), iter->value());
