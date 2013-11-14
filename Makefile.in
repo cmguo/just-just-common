@@ -28,7 +28,7 @@ PROJECT_SOURCE_DEPTH   		:= 1
 
 ## 指定头文件目录（该项目头文件的总目录，相对于头文件根目录ROOT_HEADER_DIRECTORY，默认为LOCAL_NAME）
 
-PROJECT_HEADER_DIRECTORY	:= .
+PROJECT_HEADER_DIRECTORY	:=
 
 ## 项目预编译头文件
 
