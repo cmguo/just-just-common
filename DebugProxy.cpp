@@ -12,6 +12,7 @@ using namespace util::protocol;
 
 #include <framework/network/NetName.h>
 #include <framework/network/TcpSocket.hpp>
+#include <framework/timer/TimeHelper.h>
 using namespace framework::process;
 
 #include <boost/asio/read.hpp>
@@ -19,15 +20,6 @@ using namespace framework::process;
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 using namespace boost::system;
-
-#ifdef BOOST_WINDOWS_API
-#  if (defined UNDER_CE) || (defined __MINGW32__)
-#    define localtime_r(x, y) *y = *localtime(x)
-#  else 
-#    define localtime_r(x, y) localtime_s(y, x)
-#  endif
-#  define snprintf _snprintf
-#endif
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.DebugProxy", framework::logger::Debug);
 
@@ -94,7 +86,6 @@ namespace ppbox
 
         void DebugProxy::start()
         {
-            size_t len = 0;
             error_code ec;
             framework::network::NetName addr("(tcp)(v4)0.0.0.0:9003");
             while (!exit_) {
@@ -116,7 +107,7 @@ namespace ppbox
                 //std::cout << "start accept ok" << std::endl;
 
                 util::protocol::HttpRequest request;
-                len = socket_.read(request.head(), ec);
+                socket_.read(request.head(), ec);
 
                 if (ec) {
                     //std::cout << "read close" << std::endl;
@@ -128,25 +119,21 @@ namespace ppbox
                 request.head().get_content(std::cout);
                 std::string::size_type p = request.head()["User-Agent"].value().find("Firefox");
                 if (p == std::string::npos) {
-                    std::string s_buf = "Please user Firefox to check log!";
-                    len = s_buf.length();
                     util::protocol::HttpResponse response;
                     response.head().version = 0x101;
                     response.head().set_field("Content-Type", "{text/plain}");
-                    response.head().set_field("Content-Length", boost::lexical_cast<std::string>(len));
                     response.head().connection = util::protocol::http_field::Connection::close;
 
                     socket_.write(response.head(), ec);
                     if (ec) {
-                        //std::cout << "write head close" << std::endl;
-
                         socket_.close(ec);
                         break;
                     }
 
+                    std::string s_buf = "Please user Firefox to check log!";
                     boost::asio::write(
                         socket_, 
-                        boost::asio::buffer(&s_buf[0], len), 
+                        boost::asio::buffer(s_buf), 
                         boost::asio::transfer_all(), 
                         ec);
                     socket_.close(ec);
@@ -175,7 +162,6 @@ namespace ppbox
 
                 while (!exit_) {
                     std::vector<Message> msgs;
-                    std::string s_buf;
 
                     debuger_.get_debug_msg(msgs, 1, NULL, 5);
 
@@ -185,24 +171,17 @@ namespace ppbox
                         continue;
                     }
 
+                    std::ostringstream oss;
                     for (size_t i = 0; i < size; ++i) {
                         time_t tt = msgs[i].time;
-                        struct tm lt;
-                        char time[40];
-                        localtime_r(&tt, &lt);
-                        strftime(time, sizeof(time), "%Y-%m-%d %H:%M:%S", &lt);
-
-                        char szbuf[1024] = { 0 };
-                        snprintf(szbuf, sizeof(szbuf), "[%s] [%s] %s", time, msgs[i].sender.c_str(), msgs[i].data.c_str());
-
-                        s_buf += szbuf;
+                        oss << '[' << TimeHelper::local_time_str("%Y-%m-%d %H:%M:%S", msgs[i].time) << "] ";
+                        oss << '[' << msgs[i].sender << "] ";
+                        oss << msgs[i].data;
                     }
-
-                    len = s_buf.length();
 
                     boost::asio::write(
                         socket_, 
-                        boost::asio::buffer(&s_buf[0], len), 
+                        boost::asio::buffer(oss.str()), 
                         boost::asio::transfer_all(), 
                         ec);
                     if (ec) {
