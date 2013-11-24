@@ -173,7 +173,6 @@ namespace ppbox
 
                     std::ostringstream oss;
                     for (size_t i = 0; i < size; ++i) {
-                        time_t tt = msgs[i].time;
                         oss << '[' << TimeHelper::local_time_str("%Y-%m-%d %H:%M:%S", msgs[i].time) << "] ";
                         oss << '[' << msgs[i].sender << "] ";
                         oss << msgs[i].data;
