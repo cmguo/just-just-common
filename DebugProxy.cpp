@@ -7,7 +7,7 @@
 
 #include <util/protocol/http/HttpRequest.h>
 #include <util/protocol/http/HttpResponse.h>
-#include <util/protocol/http/HttpSocket.h>
+#include <util/protocol/http/HttpSocket.hpp>
 using namespace util::protocol;
 
 #include <framework/network/NetName.h>
