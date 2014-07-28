@@ -7,9 +7,8 @@
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
 #include <framework/string/Slice.h>
+#include <framework/string/Des.h>
 #include <framework/system/ErrorCode.h>
-
-#include <security/Des.h>
 
 #include <fstream>
 #include <iterator>
@@ -84,7 +83,7 @@ namespace ppbox
             ++colon;
             std::string result;
             result.resize(input.size() - colon);
-            if(!security::Des::pptv_3_des_d(input.substr(colon).c_str(), input.size() - colon, gsKey[key_index], 24, &result[0], result.size())) {
+            if(!framework::string::Des::pptv_3_des_d(input.substr(colon).c_str(), input.size() - colon, gsKey[key_index], 24, &result[0], result.size())) {
                 ec = framework::system::logic_error::invalid_argument;
                 return false;
             }
