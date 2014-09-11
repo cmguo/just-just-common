@@ -25,6 +25,10 @@ namespace ppbox
                 std::string const & key, 
                 boost::system::error_code & ec);
 
+            void apply_params(
+                framework::string::Url & dst, 
+                framework::string::Url const & src);
+
     } // namespace common
 } // namespace ppbox
 

@@ -3,6 +3,7 @@
 #include "ppbox/common/Common.h"
 #include "ppbox/common/UrlHelper.h"
 #include "ppbox/common/BlobManager.h"
+#include "ppbox/common/Error.h"
 
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
@@ -161,6 +162,10 @@ namespace ppbox
             framework::string::Url & url, 
             boost::system::error_code & ec)
         {
+            if (!url.is_valid()) {
+                ec = error::invalid_url;
+                return false;
+            }
             std::string output;
             url.decode();
             if (decode(url.path().substr(1), output, ec)) {
@@ -205,6 +210,16 @@ namespace ppbox
             }
             url.param(key, result);
             return true;
+        }
+
+        void apply_params(
+            framework::string::Url & dst, 
+            framework::string::Url const & src)
+        {
+            for (framework::string::Url::param_const_iterator iter = src.param_begin(); iter != src.param_end(); ++iter) {
+                if (dst.param(iter->key()).empty())
+                    dst.param(iter->key(), iter->value());
+            }
         }
 
     } // namespace common
