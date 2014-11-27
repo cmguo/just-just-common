@@ -1,22 +1,22 @@
 // PortManager.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/PortManager.h"
+#include "just/common/Common.h"
+#include "just/common/PortManager.h"
 
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.PortManager", framework::logger::Debug);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.common.PortManager", framework::logger::Debug);
 
 #define PORTMANAGE_OBJECT_ID 107
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
         PortManager::PortManager(
             util::daemon::Daemon & daemon)
-            : ppbox::common::CommonModuleBase<PortManager>(daemon, "PortManager")
+            : just::common::CommonModuleBase<PortManager>(daemon, "PortManager")
         {
             ports_ = (PortContainer *)shared_memory().alloc_with_id(PORTMANAGE_OBJECT_ID, sizeof(PortContainer));
             if (ports_) 

@@ -1,15 +1,15 @@
 // Version.h
 
-#ifndef _PPBOX_COMMON_VERSION_H_
-#define _PPBOX_COMMON_VERSION_H_
+#ifndef _JUST_COMMON_VERSION_H_
+#define _JUST_COMMON_VERSION_H_
 
-#include "ppbox/common/Define.h"
+#include "just/common/Define.h"
 
 #include <framework/system/AutoVersion.h>
 
 #include <util/Version.h>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -17,6 +17,6 @@ namespace ppbox
         void log_versions();
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_VERSION_H_
+#endif // _JUST_COMMON_VERSION_H_

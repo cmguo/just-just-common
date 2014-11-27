@@ -8,7 +8,7 @@ PROJECT_TYPE			:= lib
 
 ## 生成目标名称（完整文件名称要根据类型PROJECT_TYPE、配置LOCAL_CONFIG、版本PROJECT_VERSION增加前缀、后缀）
 
-PROJECT_TARGET			:= ppbox_common
+PROJECT_TARGET			:= just_common
 
 ## 项目版本号（只要前三位，最后一位自动生成）
 
@@ -32,7 +32,7 @@ PROJECT_HEADER_DIRECTORY	:=
 
 ## 项目预编译头文件
 
-PROJECT_COMMON_HEADERS  	:= ppbox/common/Common.h
+PROJECT_COMMON_HEADERS  	:= just/common/Common.h
 
 ## 额外包含目录（多个，相对于包含根目录ROOT_INCLUDE_DIRECTORY）
 

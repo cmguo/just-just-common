@@ -1,12 +1,12 @@
 // ScheduleManager.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/ScheduleManager.h"
+#include "just/common/Common.h"
+#include "just/common/ScheduleManager.h"
 
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -49,4 +49,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

@@ -1,11 +1,11 @@
 // CommonModuleBase.h
 
-#ifndef _PPBOX_COMMON_COMMON_MODULE_BASE_H_
-#define _PPBOX_COMMON_COMMON_MODULE_BASE_H_
+#ifndef _JUST_COMMON_COMMON_MODULE_BASE_H_
+#define _JUST_COMMON_COMMON_MODULE_BASE_H_
 
-#include "ppbox/common/CommonModule.h"
+#include "just/common/CommonModule.h"
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -26,7 +26,7 @@ namespace ppbox
             }
 
         public:
-            ppbox::common::CommonModule & common()
+            just::common::CommonModule & common()
             {
                 return common_;
             }
@@ -51,10 +51,10 @@ namespace ppbox
             }
 
         private:
-            ppbox::common::CommonModule & common_;
+            just::common::CommonModule & common_;
         };
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_COMMON_MODULE_H_
+#endif // _JUST_COMMON_COMMON_MODULE_H_

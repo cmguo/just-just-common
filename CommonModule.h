@@ -1,9 +1,9 @@
 // CommonModule.h
 
-#ifndef _PPBOX_COMMON_COMMON_MODULE_H_
-#define _PPBOX_COMMON_COMMON_MODULE_H_
+#ifndef _JUST_COMMON_COMMON_MODULE_H_
+#define _JUST_COMMON_COMMON_MODULE_H_
 
-#include "ppbox/common/Environment.h"
+#include "just/common/Environment.h"
 
 #define SHARED_MEMORY_INST_ID MESSAGE_QUEUE_SHARED_MEMORY_INST_ID
 
@@ -22,7 +22,7 @@ namespace framework
     }
 }
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -80,6 +80,6 @@ namespace ppbox
         };
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_COMMON_MODULE_H_
+#endif // _JUST_COMMON_COMMON_MODULE_H_

@@ -1,7 +1,7 @@
 // ConfigMgr.h
 
-#ifndef _PPBOX_COMMON_CONFIG_MGR_H_
-#define _PPBOX_COMMON_CONFIG_MGR_H_
+#ifndef _JUST_COMMON_CONFIG_MGR_H_
+#define _JUST_COMMON_CONFIG_MGR_H_
 
 
 namespace framework
@@ -15,13 +15,13 @@ namespace framework
 using namespace boost::system;
 
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
 
         class ConfigMgr
-            : public ppbox::common::CommonModuleBase<ConfigMgr>
+            : public just::common::CommonModuleBase<ConfigMgr>
         {
         public:
             ConfigMgr(
@@ -49,6 +49,6 @@ namespace ppbox
         };
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_CONFIG_MGR_H_
+#endif // _JUST_COMMON_CONFIG_MGR_H_

@@ -1,11 +1,11 @@
 // Debuger.h
 
-#ifndef _PPBOX_COMMON_DEBUGER_H_
-#define _PPBOX_COMMON_DEBUGER_H_
+#ifndef _JUST_COMMON_DEBUGER_H_
+#define _JUST_COMMON_DEBUGER_H_
 
 #include <framework/process/MessageQueue.h>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -15,7 +15,7 @@ namespace ppbox
         class MsgQueueStream;
 
         class Debuger
-            : public ppbox::common::CommonModuleBase<Debuger>
+            : public just::common::CommonModuleBase<Debuger>
         {
         public:
             typedef void (* on_logdump_type)(
@@ -65,6 +65,6 @@ namespace ppbox
         };
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_DEBUGER_H_
+#endif // _JUST_COMMON_DEBUGER_H_

@@ -1,9 +1,9 @@
 // DebugProxy.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/DebugProxy.h"
+#include "just/common/Common.h"
+#include "just/common/DebugProxy.h"
 
-#include <ppbox/common/Debuger.h>
+#include <just/common/Debuger.h>
 
 #include <util/protocol/http/HttpRequest.h>
 #include <util/protocol/http/HttpResponse.h>
@@ -21,9 +21,9 @@ using namespace framework::process;
 #include <boost/bind.hpp>
 using namespace boost::system;
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.DebugProxy", framework::logger::Debug);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.common.DebugProxy", framework::logger::Debug);
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -194,4 +194,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

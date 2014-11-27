@@ -1,9 +1,9 @@
 // BlobManager.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/BlobManager.h"
+#include "just/common/Common.h"
+#include "just/common/BlobManager.h"
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -75,4 +75,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

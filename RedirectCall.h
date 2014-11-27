@@ -1,7 +1,7 @@
 // RedirectCall.h
 
-#ifndef PPBOX_COMMON_REDIRECT_CALL_H_
-#define PPBOX_COMMON_REDIRECT_CALL_H_
+#ifndef JUST_COMMON_REDIRECT_CALL_H_
+#define JUST_COMMON_REDIRECT_CALL_H_
 
 #include <boost/preprocessor/iteration/local.hpp>
 #include <boost/preprocessor/stringize.hpp>
@@ -11,7 +11,7 @@
 
 #include <stdarg.h>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -123,6 +123,6 @@ namespace ppbox
         };
 
     } // common
-} // ppbox
+} // just
 
-#endif // PPBOX_COMMON_REDIRECT_CALL_H_
+#endif // JUST_COMMON_REDIRECT_CALL_H_

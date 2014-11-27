@@ -1,14 +1,14 @@
 // PortManager.h
 
-#ifndef _PPBOX_COMMON_PORTMANAGER_H_
-#define _PPBOX_COMMON_PORTMANAGER_H_
+#ifndef _JUST_COMMON_PORTMANAGER_H_
+#define _JUST_COMMON_PORTMANAGER_H_
 
-#include <ppbox/common/CommonModuleBase.h>
+#include <just/common/CommonModuleBase.h>
 #include <boost/asio/io_service.hpp>
 
 
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -20,7 +20,7 @@ namespace ppbox
         };
 
         class PortManager
-            : public ppbox::common::CommonModuleBase<PortManager>
+            : public just::common::CommonModuleBase<PortManager>
         {
         public:
             PortManager(
@@ -51,6 +51,6 @@ namespace ppbox
         };
 
     } // namespace PortManager
-} // namespace ppbox
+} // namespace just
 
-#endif    // _PPBOX_COMMON_PORTMANAGER_H_
+#endif    // _JUST_COMMON_PORTMANAGER_H_

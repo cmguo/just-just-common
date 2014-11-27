@@ -1,9 +1,9 @@
 // UrlHelper.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/UrlHelper.h"
-#include "ppbox/common/BlobManager.h"
-#include "ppbox/common/Error.h"
+#include "just/common/Common.h"
+#include "just/common/UrlHelper.h"
+#include "just/common/BlobManager.h"
+#include "just/common/Error.h"
 
 #include <framework/string/Base16.h>
 #include <framework/string/Base64.h>
@@ -14,7 +14,7 @@
 #include <fstream>
 #include <iterator>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -98,7 +98,7 @@ namespace ppbox
             boost::system::error_code & ec)
         {
             boost::asio::const_buffer blob;
-            if ((ec = ppbox::common::blob_manager().get(input, blob))) {
+            if ((ec = just::common::blob_manager().get(input, blob))) {
                 return false;
             }
             char const * str = boost::asio::buffer_cast<char const *>(blob);
@@ -223,4 +223,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

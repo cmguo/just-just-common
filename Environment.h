@@ -1,11 +1,11 @@
 // Environment.h
 
-#ifndef _PPBOX_COMMON_ENVIRONMENT_H_
-#define _PPBOX_COMMON_ENVIRONMENT_H_
+#ifndef _JUST_COMMON_ENVIRONMENT_H_
+#define _JUST_COMMON_ENVIRONMENT_H_
 
 #include <framework/system/Version.h>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -25,6 +25,6 @@ namespace ppbox
         };
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_ENVIRONMENT_H_
+#endif // _JUST_COMMON_ENVIRONMENT_H_

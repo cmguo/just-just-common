@@ -1,7 +1,7 @@
 // ConfigMgr.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/ConfigMgr.h"
+#include "just/common/Common.h"
+#include "just/common/ConfigMgr.h"
 
 #include <framework/timer/Timer.h>
 #include <framework/string/Slice.h>
@@ -15,14 +15,14 @@ using namespace boost::system;
 #define MSGTYPECONFIG   1
 #define MSGLEVEL        0
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
 
         ConfigMgr::ConfigMgr(
             util::daemon::Daemon & daemon)
-            : ppbox::common::CommonModuleBase<ConfigMgr>(daemon, "ConfigMgr")
+            : just::common::CommonModuleBase<ConfigMgr>(daemon, "ConfigMgr")
             , timer_(NULL)
         {
         }
@@ -76,4 +76,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

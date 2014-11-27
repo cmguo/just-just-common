@@ -1,13 +1,13 @@
 // Environment.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/Environment.h"
+#include "just/common/Common.h"
+#include "just/common/Environment.h"
 
 #include <framework/network/Interface.h>
 using namespace framework::network;
 using namespace framework::system;
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -43,4 +43,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

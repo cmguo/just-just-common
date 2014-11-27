@@ -1,8 +1,8 @@
 // CommonModule.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/CommonModule.h"
-#include "ppbox/common/ConfigMgr.h"
+#include "just/common/Common.h"
+#include "just/common/CommonModule.h"
+#include "just/common/ConfigMgr.h"
 
 #include <framework/process/MessageQueue.h>
 #include <framework/logger/Logger.h>
@@ -12,9 +12,9 @@ using namespace framework::process;
 using namespace framework::configure;
 
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.CommonModule", framework::logger::Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.common.CommonModule", framework::logger::Debug)
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -25,7 +25,7 @@ namespace ppbox
             boost::system::error_code ec;
             framework::memory::SharedMemory::remove(SHARED_MEMORY_INST_ID);
             if (shm.open(framework::memory::SharedMemory::no_user_id, 
-#if defined( PPBOX_SINGLE_PROCESS )
+#if defined( JUST_SINGLE_PROCESS )
                 framework::memory::SharedMemory::private_ 
 #else
                 framework::memory::SharedMemory::default_ 
@@ -82,4 +82,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

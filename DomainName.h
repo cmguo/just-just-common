@@ -1,7 +1,7 @@
 // DomainName.h
 
-#ifndef _PPBOX_COMMON_DOMAIN_NAME_H_
-#define _PPBOX_COMMON_DOMAIN_NAME_H_
+#ifndef _JUST_COMMON_DOMAIN_NAME_H_
+#define _JUST_COMMON_DOMAIN_NAME_H_
 
 #include <framework/network/NetName.h>
 #include <framework/system/FileTag.h>
@@ -10,4 +10,4 @@
 DEFINE_FILE_TAG_NAME(domain_name, name, value) \
 static framework::network::NetName const name(FILE_TAG_NAME(name))
 
-#endif // _PPBOX_COMMON_DOMAIN_NAME_H_
+#endif // _JUST_COMMON_DOMAIN_NAME_H_

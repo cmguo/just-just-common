@@ -1,11 +1,11 @@
 // HttpStatistics.h
 
-#ifndef _PPBOX_COMMON_HTTP_STATISTICS_H_
-#define _PPBOX_COMMON_HTTP_STATISTICS_H_
+#ifndef _JUST_COMMON_HTTP_STATISTICS_H_
+#define _JUST_COMMON_HTTP_STATISTICS_H_
 
 #include <util/protocol/http/HttpClient.h>
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -64,6 +64,6 @@ namespace ppbox
         };
 
     } // namespace demux
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_COMMON_HTTP_STATISTICS_H_
+#endif // _JUST_COMMON_HTTP_STATISTICS_H_

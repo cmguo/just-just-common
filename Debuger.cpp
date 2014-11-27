@@ -1,7 +1,7 @@
 // Debuger.cpp
 
-#include "ppbox/common/Common.h"
-#include "ppbox/common/Debuger.h"
+#include "just/common/Common.h"
+#include "just/common/Debuger.h"
 
 #include <util/buffers/BuffersCopy.h>
 
@@ -23,9 +23,9 @@ using namespace boost::system;
 
 #define DEBUG_OBJECT_ID 102
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Debuger", framework::logger::Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.common.Debuger", framework::logger::Debug)
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -110,7 +110,7 @@ namespace ppbox
 
         Debuger::Debuger(
             util::daemon::Daemon & daemon)
-            : ppbox::common::CommonModuleBase<Debuger>(daemon, "Debuger")
+            : just::common::CommonModuleBase<Debuger>(daemon, "Debuger")
             , debug_log_stream_(NULL)
             , hook_log_stream_(NULL)
             , timer_(NULL)
@@ -275,4 +275,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just

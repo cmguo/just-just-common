@@ -1,8 +1,8 @@
 // Version.cpp
 
-#include "ppbox/common/Common.h"
+#include "just/common/Common.h"
 #define VERSION_SOURCE
-#include "ppbox/common/Version.h"
+#include "just/common/Version.h"
 
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
@@ -11,11 +11,11 @@
 
 #include <iostream>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.common.Version", framework::logger::Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.common.Version", framework::logger::Debug)
 
 #undef linux
 
-namespace ppbox
+namespace just
 {
     namespace common
     {
@@ -34,4 +34,4 @@ namespace ppbox
         }
 
     } // namespace common
-} // namespace ppbox
+} // namespace just
