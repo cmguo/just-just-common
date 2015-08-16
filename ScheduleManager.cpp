@@ -17,15 +17,16 @@ namespace just
         {
         }
 
-        boost::system::error_code ScheduleManager::startup()
+        bool ScheduleManager::startup(
+            boost::system::error_code & ec)
         {
-            boost::system::error_code ec;
-            return ec;
+            return true;
         }
 
-        // Í£Ö¹ÐÄÌø(keepalive)
-        void ScheduleManager::shutdown()
+        bool ScheduleManager::shutdown(
+            boost::system::error_code & ec)
         {
+            return true;
         }
 
         void * ScheduleManager::schedule_callback(

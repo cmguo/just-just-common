@@ -45,9 +45,11 @@ namespace just
         private:
             PortContainer* ports_;
         public:
-            virtual boost::system::error_code startup();
-            virtual void shutdown();
+            virtual bool startup(
+                boost::system::error_code & ec);
 
+            virtual bool shutdown(
+                boost::system::error_code & ec);
         };
 
     } // namespace PortManager

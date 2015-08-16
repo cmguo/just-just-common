@@ -33,13 +33,16 @@ namespace just
         {
         }
 
-        boost::system::error_code PortManager::startup()
+        bool PortManager::startup(
+            boost::system::error_code & ec)
         {
-            return boost::system::error_code();
+            return true;
         }
 
-        void PortManager::shutdown()
+        bool PortManager::shutdown(
+            boost::system::error_code & ec)
         {
+            return true;
         }
 
         boost::system::error_code PortManager::get_port(ModuleType type,boost::uint16_t& port)

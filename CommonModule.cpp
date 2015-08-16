@@ -64,15 +64,18 @@ namespace just
             shm_.close(ec);
         }
 
-        boost::system::error_code CommonModule::startup()
+        bool CommonModule::startup(
+            boost::system::error_code & ec)
         {
             tmgr_.start();
-            return boost::system::error_code();
+            return true;
         }
 
-        void CommonModule::shutdown()
+        bool CommonModule::shutdown(
+            boost::system::error_code & ec)
         {
             tmgr_.stop();
+            return true;
         }
 
         void CommonModule::set_version(

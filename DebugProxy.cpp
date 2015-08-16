@@ -46,25 +46,25 @@ namespace just
         {
         }
 
-        error_code DebugProxy::startup()
+        bool DebugProxy::startup(
+            error_code & ec)
         {
-            error_code ec;
             if (acceptor_.open<boost::asio::ip::tcp>(addr_.endpoint(), ec)) {
                 ec.clear();
-                return ec;
+                return true;
             }
             work_thread_ = new boost::thread(
                 boost::bind(&DebugProxy::start, this));
 
-            return ec;
+            return true;
         }
 
-        void DebugProxy::shutdown()
+        bool DebugProxy::shutdown(
+            error_code & ec)
         {
             {
                 boost::mutex::scoped_lock lock(mutex_);
 
-                error_code ec;
                 exit_ = true;
 
                 util::protocol::HttpSocket client(io_svc());
@@ -82,6 +82,7 @@ namespace just
                 delete work_thread_;
                 work_thread_ = NULL;
             }
+            return true;
         }
 
         void DebugProxy::start()
@@ -173,7 +174,7 @@ namespace just
 
                     std::ostringstream oss;
                     for (size_t i = 0; i < size; ++i) {
-                        oss << '[' << TimeHelper::local_time_str("%Y-%m-%d %H:%M:%S", msgs[i].time) << "] ";
+                        oss << '[' << framework::timer::TimeHelper::local_time_str("%Y-%m-%d %H:%M:%S", msgs[i].time) << "] ";
                         oss << '[' << msgs[i].sender << "] ";
                         oss << msgs[i].data;
                     }

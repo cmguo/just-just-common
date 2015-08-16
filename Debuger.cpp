@@ -140,18 +140,18 @@ namespace just
             }
         }
 
-        error_code Debuger::startup()
+        bool Debuger::startup(
+            error_code & ec)
         {
-            error_code ec;
             timer_ = new framework::timer::PeriodicTimer(
                 timer_queue(), 1000, boost::bind(&Debuger::handle_timer, this));
             timer_->start();
             check_debug_mode();
-            return ec;
+            return true;
         }
 
-        // Í£Ö¹ÐÄÌø(keepalive)
-        void Debuger::shutdown()
+        bool Debuger::shutdown(
+            error_code & ec)
         {
             timer_->stop();
             delete timer_;
@@ -165,6 +165,7 @@ namespace just
                 LOG_INFO("[shutdown] leave debug mode");
                 framework::logger::del_stream(*debug_log_stream_);
             }
+            return true;
        }
 
         void Debuger::get_debug_msg(
