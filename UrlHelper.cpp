@@ -167,7 +167,6 @@ namespace just
                 return false;
             }
             std::string output;
-            url.decode();
             if (decode(url.path().substr(1), output, ec)) {
                 framework::string::Url ur12("http:///" + output);
                 url.path(ur12.path());
@@ -175,7 +174,6 @@ namespace just
                     url.param(iter->key(), iter->value());
                 }
             }
-            url.decode();
             return true;
         }
 
